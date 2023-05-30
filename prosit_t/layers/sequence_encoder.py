@@ -2,7 +2,7 @@ import tensorflow as tf
 import keras_nlp
 
 
-class SequenceEncoder(tf.keras.layer):
+class SequenceEncoder(tf.keras.layers.Layer):
     def __init__(
         self,
         intermediate_dim=512,
