@@ -2,7 +2,7 @@ import tensorflow as tf
 import keras_nlp
 
 
-class SequenceEncoderNoGRU(tf.keras.layers.Layer):
+class SequenceEncoderNoGRUMhAttention(tf.keras.layers.Layer):
     def __init__(
         self,
         intermediate_dim=512,
@@ -21,8 +21,15 @@ class SequenceEncoderNoGRU(tf.keras.layers.Layer):
             dropout=dropout_rate,
             layer_norm_epsilon=layer_norm_epsilon,
         )
+        self.mh_attention = tf.keras.layers.MultiHeadAttention(
+            num_heads=mh_num_heads,
+            key_dim=key_dim,
+            dropout=dropout_rate,
+            output_shape=regressor_layer_size,
+        )
 
     def call(self, inputs, **kwargs):
         x = self.transformer_encoder(inputs)
+        x = self.mh_attention(x, x)
 
         return x

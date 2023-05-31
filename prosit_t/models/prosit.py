@@ -5,7 +5,7 @@ from dlomix.layers.attention import AttentionLayer
 from prosit_t.layers.sequence_encoder import SequenceEncoder
 from prosit_t.layers.gru_decoder import GRUDecoder
 from prosit_t.layers.fusion_layer import FusionLayer
-from prosit_t.layers.regressor import Regressor
+from prosit_t.layers.regressor_time_distributed import RegressorTimeDistributed
 from prosit_t.layers.sequence_encoder_no_gru import SequenceEncoderNoGRU
 
 class PrositIntensityPredictor(tf.keras.Model):
@@ -64,7 +64,7 @@ class PrositIntensityPredictor(tf.keras.Model):
         self.attention = AttentionLayer(name="encoder_att")
         self.fusion_layer = FusionLayer(self.max_ion)
         self.decoder = GRUDecoder(regressor_layer_size, dropout_rate, self.max_ion)
-        self.regressor = Regressor(len_fion)
+        self.regressor_td = RegressorTimeDistributed(len_fion)
 
     def call(self, inputs, **kwargs):
         peptides_in = inputs["sequence"]
@@ -78,5 +78,5 @@ class PrositIntensityPredictor(tf.keras.Model):
         x = self.attention(x)
         x = self.fusion_layer([x, encoded_meta])
         x = self.decoder(x)
-        x = self.regressor(x)
+        x = self.regressor_td(x)
         return x
