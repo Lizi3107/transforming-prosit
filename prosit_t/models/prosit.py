@@ -2,11 +2,16 @@ import tensorflow as tf
 from tensorflow.keras.layers.experimental import preprocessing
 from dlomix.constants import ALPHABET_UNMOD
 from dlomix.layers.attention import AttentionLayer
-from prosit_t.layers.sequence_encoder import SequenceEncoder
-from prosit_t.layers.gru_decoder import GRUDecoder
-from prosit_t.layers.fusion_layer import FusionLayer
-from prosit_t.layers.regressor_time_distributed import RegressorTimeDistributed
-from prosit_t.layers.sequence_encoder_no_gru import SequenceEncoderNoGRU
+from prosit_t.layers import (
+    MetaEncoder,
+    FusionLayer,
+    TransformerDecoder,
+    RegressorTimeDistributed,
+    SequenceEncoder,
+    SequenceEncoderNoGRU,
+    GRUDecoder,
+)
+
 
 class PrositIntensityPredictor(tf.keras.Model):
     def __init__(
@@ -45,13 +50,11 @@ class PrositIntensityPredictor(tf.keras.Model):
         self.meta_encoder = tf.keras.Sequential(
             [
                 tf.keras.layers.Concatenate(name="meta_in"),
-                tf.keras.layers.Dense(
-                    regressor_layer_size, name="meta_dense"
-                ),
+                tf.keras.layers.Dense(regressor_layer_size, name="meta_dense"),
                 tf.keras.layers.Dropout(dropout_rate, name="meta_dense_do"),
             ]
         )
-    
+
         self.sequence_encoder = SequenceEncoderNoGRU(
             intermediate_dim,
             transformer_num_heads,
