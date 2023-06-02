@@ -2,7 +2,7 @@ import tensorflow as tf
 import keras_nlp
 
 
-class SequenceEncoder(tf.keras.layers.Layer):
+class SequenceEncoderTransformerGRU(tf.keras.layers.Layer):
     def __init__(
         self,
         intermediate_dim=512,
@@ -13,7 +13,7 @@ class SequenceEncoder(tf.keras.layers.Layer):
         layer_norm_epsilon=1e-5,
         regressor_layer_size=512,
     ):
-        super(SequenceEncoder, self).__init__()
+        super(SequenceEncoderTransformerGRU, self).__init__()
 
         self.transformer_encoder = keras_nlp.layers.TransformerEncoder(
             intermediate_dim=intermediate_dim,

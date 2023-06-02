@@ -5,10 +5,8 @@ from dlomix.layers.attention import AttentionLayer
 from prosit_t.layers import (
     MetaEncoder,
     FusionLayer,
-    TransformerDecoder,
     RegressorTimeDistributed,
-    SequenceEncoder,
-    SequenceEncoderNoGRU,
+    SequenceEncoderTransformerGRU,
     GRUDecoder,
 )
 
@@ -47,15 +45,9 @@ class PrositIntensityPredictor(tf.keras.Model):
             input_length=seq_length,
         )
 
-        self.meta_encoder = tf.keras.Sequential(
-            [
-                tf.keras.layers.Concatenate(name="meta_in"),
-                tf.keras.layers.Dense(regressor_layer_size, name="meta_dense"),
-                tf.keras.layers.Dropout(dropout_rate, name="meta_dense_do"),
-            ]
-        )
+        self.meta_encoder = MetaEncoder(regressor_layer_size, dropout_rate)
 
-        self.sequence_encoder = SequenceEncoderNoGRU(
+        self.sequence_encoder = SequenceEncoderTransformerGRU(
             intermediate_dim,
             transformer_num_heads,
             mh_num_heads,
