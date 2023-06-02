@@ -5,13 +5,13 @@ from dlomix.layers.attention import AttentionLayer
 from prosit_t.layers import (
     MetaEncoder,
     FusionLayer,
-    RegressorTimeDistributed,
-    SequenceEncoderTransformerGRU,
-    GRUDecoder,
+    TransformerDecoder,
+    Regressor,
+    SequenceEncoderNoGRU,
 )
 
 
-class PrositIntensityPredictor(tf.keras.Model):
+class PrositTransformerIntensityPredictor(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -26,14 +26,17 @@ class PrositIntensityPredictor(tf.keras.Model):
         latent_dropout_rate=0.1,
         regressor_layer_size=512,
         layer_norm_epsilon=1e-5,
+        num_encoders=5,
     ):
-        super(PrositIntensityPredictor, self).__init__()
+        super(PrositTransformerIntensityPredictor, self).__init__()
 
         # tie the count of embeddings to the size of the vocabulary (count of aa)
         self.embeddings_count = len(vocab_dict) + 2
 
         # maximum number of fragment ions
         self.max_ion = seq_length - 1
+
+        self.meta_encoder = MetaEncoder(embedding_output_dim, dropout_rate)
 
         self.string_lookup = preprocessing.StringLookup(
             vocabulary=list(vocab_dict.keys())
@@ -45,9 +48,9 @@ class PrositIntensityPredictor(tf.keras.Model):
             input_length=seq_length,
         )
 
-        self.meta_encoder = MetaEncoder(regressor_layer_size, dropout_rate)
-
-        self.sequence_encoder = SequenceEncoderTransformerGRU(
+        self.attention = AttentionLayer(name="encoder_att")
+        self.fusion_layer = FusionLayer(self.max_ion)
+        self.sequence_encoder = SequenceEncoderNoGRU(
             intermediate_dim,
             transformer_num_heads,
             mh_num_heads,
@@ -55,23 +58,50 @@ class PrositIntensityPredictor(tf.keras.Model):
             dropout_rate,
             layer_norm_epsilon,
             regressor_layer_size,
+            num_encoders,
         )
-        self.attention = AttentionLayer(name="encoder_att")
-        self.fusion_layer = FusionLayer(self.max_ion)
-        self.decoder = GRUDecoder(regressor_layer_size, dropout_rate, self.max_ion)
-        self.regressor_td = RegressorTimeDistributed(len_fion)
+
+        self.decoder = TransformerDecoder(
+            intermediate_dim,
+            transformer_num_heads,
+            mh_num_heads,
+            key_dim,
+            dropout_rate,
+            layer_norm_epsilon,
+            regressor_layer_size,
+            self.max_ion,
+            num_encoders,
+        )
+        self.regressor = Regressor(len_fion)
+
+    def summary(self):
+        print("------------------")
+        in_sequence = tf.keras.layers.Input(shape=(30,))
+        in_collision_energy = tf.keras.layers.Input(shape=(1,))
+        in_precursor_charge = tf.keras.layers.Input(shape=(6,))
+        outputs = self.call(
+            {
+                "sequence": in_sequence,
+                "collision_energy": in_collision_energy,
+                "precursor_charge": in_precursor_charge,
+            }
+        )
+        return tf.keras.Model(
+            inputs=[in_sequence, in_collision_energy, in_precursor_charge],
+            outputs=outputs,
+        ).summary()
 
     def call(self, inputs, **kwargs):
         peptides_in = inputs["sequence"]
         collision_energy_in = inputs["collision_energy"]
         precursor_charge_in = inputs["precursor_charge"]
-
+        print(collision_energy_in.shape, precursor_charge_in.shape)
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
         x = self.string_lookup(peptides_in)
         x = self.embedding(x)
-        x = self.sequence_encoder(x)
         x = self.attention(x)
         x = self.fusion_layer([x, encoded_meta])
+        x = self.sequence_encoder(x)
         x = self.decoder(x)
-        x = self.regressor_td(x)
+        x = self.regressor(x)
         return x

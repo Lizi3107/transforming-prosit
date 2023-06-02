@@ -1,2 +1,10 @@
 # wandb
 wandb/
+artifacts/
+
+
+__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
