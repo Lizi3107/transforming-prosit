@@ -1,23 +1,23 @@
 import tensorflow as tf
 import wandb
 from wandb.keras import WandbCallback
-from prosit_t.models import PrositTransformerIntensityPredictorV2
+from prosit_t.models import PrositTransformerIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.data import IntensityDataset
 from dlomix.constants import ALPHABET_UNMOD
 
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
 PROJECT_NAME = "transforming-prosit"
-EPOCHS = 2
+EPOCHS = 60
 DEFAULT_CONFIG = {
-    "name": "",
+    "name": "16_heads_2_encoders_pos_emb_size_512_take_last_token",
     "learning_rate": 0.0001,
     "batch_size": 64,
     "embedding_output_dim": 512,
     "intermediate_dim": 512,
-    "transformer_num_heads": 4,
-    "mh_num_heads": 4,
-    "key_dim": 4,
+    "transformer_num_heads": 16,
+    "mh_num_heads": 16,
+    "key_dim": 16,
     "seq_length": 30,
     "len_fion": 6,
     "vocab_dict": ALPHABET_UNMOD,
@@ -25,12 +25,12 @@ DEFAULT_CONFIG = {
     "latent_dropout_rate": 0.1,
     "layer_norm_epsilon": 1e-5,
     "regressor_layer_size": 512,
-    "num_encoders": 3,
+    "num_encoders": 2,
 }
 
 
 def get_model(config):
-    model = PrositTransformerIntensityPredictorV2()
+    model = PrositTransformerIntensityPredictor(**config)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
         loss=masked_spectral_distance,
@@ -60,7 +60,7 @@ def get_data(run, config):
 
 
 def train(config=None):
-    with wandb.init(config=config, project=PROJECT_NAME) as run:
+    with wandb.init(config=config, project=PROJECT_NAME, name=config["name"]) as run:
         config = wandb.config
         config = dict(wandb.config)
 
@@ -73,6 +73,7 @@ def train(config=None):
             epochs=EPOCHS,
             callbacks=callbacks,
         )
+        model.summary()
 
 
 def main():
