@@ -11,3 +11,4 @@ from prosit_t.layers.transformer_encoder import TransformerEncoder
 from prosit_t.layers.transformer_decoder import TransformerDecoder
 from prosit_t.layers.sequence_context import Encoder, DecoderMeta, MetaEmbeddingSimple
 from prosit_t.layers.gru_encoder import GRUEncoder
+from prosit_t.layers.transformer import TransformerBlock
