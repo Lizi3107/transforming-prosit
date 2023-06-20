@@ -5,7 +5,6 @@ from dlomix.layers.attention import AttentionLayer
 from prosit_t.layers import (
     MetaEncoder,
     FusionLayer,
-    RegressorTimeDistributed,
     RegressorV2,
     PositionalEmbedding,
 )
