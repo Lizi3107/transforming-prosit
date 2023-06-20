@@ -12,9 +12,9 @@ class TransformerDecoder(tf.keras.layers.Layer):
         key_dim=4,
         dropout_rate=0.2,
         layer_norm_epsilon=1e-5,
-        regressor_layer_size=512,
         max_ion=29,
         num_encoders=1,
+        normalize_first=True,
     ):
         super(TransformerDecoder, self).__init__()
         self.num_encoders = num_encoders
@@ -24,6 +24,7 @@ class TransformerDecoder(tf.keras.layers.Layer):
                 num_heads=transformer_num_heads,
                 dropout=dropout_rate,
                 layer_norm_epsilon=layer_norm_epsilon,
+                normalize_first=normalize_first,
             )
             for _ in range(num_encoders)
         ]
