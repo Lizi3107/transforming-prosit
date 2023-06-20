@@ -5,7 +5,8 @@ from dlomix.layers.attention import AttentionLayer
 from prosit_t.layers import (
     MetaEncoder,
     FusionLayer,
-    RegressorTimeDistributed,
+    RegressorV2,
+    PositionalEmbedding,
 )
 
 
@@ -33,17 +34,17 @@ class PrositNoGRUIntensityPredictor(tf.keras.Model):
             vocabulary=list(vocab_dict.keys())
         )
 
-        self.embedding = tf.keras.layers.Embedding(
-            input_dim=self.embeddings_count,
-            output_dim=embedding_output_dim,
-            input_length=seq_length,
+        self.pos_embedding = PositionalEmbedding(
+            self.embeddings_count, embedding_output_dim
         )
-
         self.meta_encoder = MetaEncoder(regressor_layer_size, dropout_rate)
 
-        self.attention = AttentionLayer(name="encoder_att")
+        # self.attention = AttentionLayer(name="encoder_att")
+        self.flatten_1 = tf.keras.layers.Flatten()
+        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim)
         self.fusion_layer = FusionLayer(self.max_ion)
-        self.regressor_td = RegressorTimeDistributed(len_fion)
+        self.flatten_2 = tf.keras.layers.Flatten()
+        self.regressor_td = RegressorV2(len_fion * self.max_ion)
 
     def summary(self):
         in_sequence = tf.keras.layers.Input(shape=(30,))
@@ -68,8 +69,11 @@ class PrositNoGRUIntensityPredictor(tf.keras.Model):
 
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
         x = self.string_lookup(peptides_in)
-        x = self.embedding(x)
-        x = self.attention(x)
+        x = self.pos_embedding(x)
+        x = self.flatten_1(x)
+        x = self.dense_1(x)
+        # x = self.attention(x)
         x = self.fusion_layer([x, encoded_meta])
+        x = self.flatten_2(x)
         x = self.regressor_td(x)
         return x
