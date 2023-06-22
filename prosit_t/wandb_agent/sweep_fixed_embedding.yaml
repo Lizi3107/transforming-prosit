@@ -1,0 +1,38 @@
+program: train_simple_model.py
+method: bayes
+metric:
+  goal: minimize
+  name: "val_loss"
+parameters:
+  num_heads:
+    values: [2, 4, 8, 12, 16]
+    distribution: categorical
+  embedding_output_dim:
+    value: 64
+  dropout_rate:
+    max: 0.2
+    min: 0.02
+    distribution: uniform
+  layer_norm_epsilon:
+    max: 0.00002
+    min: 0.000005
+    distribution: uniform
+  ff_dim:
+    values: [16, 32, 64, 128, 256]
+    distribution: categorical
+  learning_rate:
+    max: 0.0002
+    min: 0.00005
+    distribution: uniform
+  seq_length:
+    value: 30
+  batch_size:
+    values: [64, 128, 256]
+    distribution: categorical
+  len_fion:
+    value: 6
+  name:
+    values:
+      - ""
+      - 2_transformer_blocks
+    distribution: categorical
