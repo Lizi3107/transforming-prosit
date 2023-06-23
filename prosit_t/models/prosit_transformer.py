@@ -6,7 +6,6 @@ from prosit_t.layers import (
     MetaEncoder,
     FusionLayer,
     TransformerDecoder,
-    Regressor,
     RegressorV2,
     TransformerEncoder,
     PositionalEmbedding,
@@ -26,7 +25,6 @@ class PrositTransformerIntensityPredictor(tf.keras.Model):
         vocab_dict=ALPHABET_UNMOD,
         dropout_rate=0.2,
         latent_dropout_rate=0.1,
-        regressor_layer_size=512,
         layer_norm_epsilon=1e-5,
         num_encoders=5,
         **kwargs
@@ -58,10 +56,9 @@ class PrositTransformerIntensityPredictor(tf.keras.Model):
             key_dim,
             dropout_rate,
             layer_norm_epsilon,
-            regressor_layer_size,
             num_encoders,
+            normalize_first=True,
         )
-
         self.decoder = TransformerDecoder(
             intermediate_dim,
             transformer_num_heads,
@@ -69,15 +66,27 @@ class PrositTransformerIntensityPredictor(tf.keras.Model):
             key_dim,
             dropout_rate,
             layer_norm_epsilon,
-            regressor_layer_size,
             self.max_ion,
             num_encoders,
+            normalize_first=True,
         )
 
-        # self.flatten = tf.keras.layers.Flatten()
-        self.extract_last_token = tf.keras.layers.Lambda(lambda x: x[:, -1, :])
+        self.flatten_2 = tf.keras.layers.Flatten()
+        # self.extract_last_token = tf.keras.layers.Lambda(lambda x: x[:, -1, :])
 
-        self.regressor = RegressorV2(174)
+        self.regressor = RegressorV2(len_fion * self.max_ion)
+        self.relu = tf.keras.layers.ReLU()
+        self.flatten_3 = tf.keras.layers.Flatten(name="out")
+
+        self.before_dense = tf.Variable(
+            initial_value=tf.zeros((64, 1856)), trainable=False
+        )
+        self.after_dense = tf.Variable(
+            initial_value=tf.zeros((64, 174)), trainable=False
+        )
+        self.after_relu = tf.Variable(
+            initial_value=tf.zeros((64, 174)), trainable=False
+        )
 
     def summary(self):
         in_sequence = tf.keras.layers.Input(shape=(30,))
@@ -95,7 +104,7 @@ class PrositTransformerIntensityPredictor(tf.keras.Model):
             outputs=outputs,
         ).summary()
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, training=None, **kwargs):
         peptides_in = inputs["sequence"]
         collision_energy_in = inputs["collision_energy"]
         precursor_charge_in = inputs["precursor_charge"]
@@ -106,7 +115,14 @@ class PrositTransformerIntensityPredictor(tf.keras.Model):
         x = self.fusion_layer([x, encoded_meta])
         x = self.sequence_encoder(x)
         x = self.decoder(x)
-        # x = self.flatten(x)
-        x = self.extract_last_token(x)
+        x = self.flatten_2(x)
+        if training is False:
+            self.before_dense.assign(x)
         x = self.regressor(x)
+        if training is False:
+            self.after_dense.assign(x)
+        x = self.relu(x)
+        if training is False:
+            self.after_relu.assign(x)
+        x = self.flatten_3(x)
         return x

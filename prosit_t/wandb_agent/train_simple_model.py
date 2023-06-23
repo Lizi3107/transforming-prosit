@@ -1,16 +1,18 @@
 import tensorflow as tf
+from keras.callbacks import EarlyStopping
 import wandb
 from wandb.keras import WandbCallback
 from prosit_t.models import PrositSimpleIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.data import IntensityDataset
 from dlomix.constants import ALPHABET_UNMOD
+import os
 
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
 PROJECT_NAME = "transforming-prosit"
 EPOCHS = 60
+
 DEFAULT_CONFIG = {
-    "name": "2_transformer_block_batch_128_dropout_0.1_keras_nlp_with_attention",
     "learning_rate": 0.0001,
     "batch_size": 128,
     "embedding_output_dim": 64,
@@ -18,9 +20,7 @@ DEFAULT_CONFIG = {
     "len_fion": 6,
     "vocab_dict": ALPHABET_UNMOD,
     "dropout_rate": 0.1,
-    "latent_dropout_rate": 0.1,
-    "regressor_layer_size": 512,
-    "ffdim": 32,
+    "ff_dim": 32,
     "num_heads": 16,
 }
 
@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
 def get_model(config):
     model = PrositSimpleIntensityPredictor(**config)
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
         loss=masked_spectral_distance,
         metrics=[masked_pearson_correlation_distance],
     )
@@ -37,8 +37,12 @@ def get_model(config):
 
 
 def get_callbacks(config):
+    PATIENCE = 10
+    callback_earlystopping = EarlyStopping(
+        monitor="val_loss", patience=PATIENCE, restore_best_weights=True, verbose=1
+    )
     cb_wandb = WandbCallback()
-    callbacks = [cb_wandb]
+    callbacks = [callback_earlystopping, cb_wandb]
     return callbacks
 
 
@@ -56,7 +60,7 @@ def get_data(run, config):
 
 
 def train(config=None):
-    with wandb.init(config=config, project=PROJECT_NAME, name=config["name"]) as run:
+    with wandb.init(config=config, project=PROJECT_NAME) as run:
         config = wandb.config
         config = dict(wandb.config)
 
@@ -73,6 +77,7 @@ def train(config=None):
 
 
 def main():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     train(DEFAULT_CONFIG)
 
 
