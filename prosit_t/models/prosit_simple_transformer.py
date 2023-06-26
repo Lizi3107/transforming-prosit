@@ -39,8 +39,12 @@ class PrositSimpleIntensityPredictor(tf.keras.Model):
             self.embeddings_count, embedding_output_dim
         )
         self.meta_encoder = MetaEncoder(embedding_output_dim, dropout_rate)
-        self.transformer_1 = TransformerBlock(embedding_output_dim, num_heads, ff_dim)
-        self.transformer_2 = TransformerBlock(embedding_output_dim, num_heads, ff_dim)
+        self.transformer_1 = TransformerBlock(
+            embedding_output_dim, num_heads, ff_dim, rate=dropout_rate
+        )
+        self.transformer_2 = TransformerBlock(
+            embedding_output_dim, num_heads, ff_dim, rate=dropout_rate
+        )
 
         self.flatten_1 = tf.keras.layers.Flatten()
         self.dense_1 = tf.keras.layers.Dense(embedding_output_dim)
