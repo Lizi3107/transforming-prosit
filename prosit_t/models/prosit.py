@@ -61,6 +61,22 @@ class PrositIntensityPredictor(tf.keras.Model):
         self.decoder = GRUDecoder(regressor_layer_size, dropout_rate, self.max_ion)
         self.regressor_td = RegressorTimeDistributed(len_fion)
 
+    def summary(self):
+        in_sequence = tf.keras.layers.Input(shape=(30,))
+        in_collision_energy = tf.keras.layers.Input(shape=(1,))
+        in_precursor_charge = tf.keras.layers.Input(shape=(6,))
+        outputs = self.call(
+            {
+                "sequence": in_sequence,
+                "collision_energy": in_collision_energy,
+                "precursor_charge": in_precursor_charge,
+            }
+        )
+        return tf.keras.Model(
+            inputs=[in_sequence, in_collision_energy, in_precursor_charge],
+            outputs=outputs,
+        ).summary()
+
     def call(self, inputs, **kwargs):
         peptides_in = inputs["sequence"]
         collision_energy_in = inputs["collision_energy"]

@@ -8,7 +8,7 @@ from dlomix.constants import ALPHABET_UNMOD
 
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
 PROJECT_NAME = "transforming-prosit"
-EPOCHS = 30
+EPOCHS = 60
 DEFAULT_CONFIG = {
     "name": "",
     "learning_rate": 0.0001,
@@ -72,6 +72,7 @@ def train(config=None):
             epochs=EPOCHS,
             callbacks=callbacks,
         )
+        model.summary()
 
 
 def main():
