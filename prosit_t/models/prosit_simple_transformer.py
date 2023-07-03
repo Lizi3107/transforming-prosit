@@ -21,6 +21,7 @@ class PrositSimpleIntensityPredictor(tf.keras.Model):
         regressor_layer_size=512,
         num_heads=8,
         ff_dim=32,
+        transformer_dropout=0.1,
         **kwargs
     ):
         super(PrositSimpleIntensityPredictor, self).__init__()
@@ -40,10 +41,10 @@ class PrositSimpleIntensityPredictor(tf.keras.Model):
         )
         self.meta_encoder = MetaEncoder(embedding_output_dim, dropout_rate)
         self.transformer_1 = TransformerBlock(
-            embedding_output_dim, num_heads, ff_dim, rate=dropout_rate
+            embedding_output_dim, num_heads, ff_dim, rate=transformer_dropout
         )
         self.transformer_2 = TransformerBlock(
-            embedding_output_dim, num_heads, ff_dim, rate=dropout_rate
+            embedding_output_dim, num_heads, ff_dim, rate=transformer_dropout
         )
 
         self.flatten_1 = tf.keras.layers.Flatten()
