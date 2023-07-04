@@ -9,7 +9,7 @@ from train_utils import get_example_data, get_proteometools_data
 import os
 
 PROJECT_NAME = "transforming-prosit"
-EPOCHS = 60
+EPOCHS = 200
 
 DEFAULT_CONFIG = {
     "learning_rate": 0.0001,
@@ -22,7 +22,10 @@ DEFAULT_CONFIG = {
     "ff_dim": 32,
     "num_heads": 16,
     "transformer_dropout": 0.1,
-    "dataset": "example",
+    "dataset": "proteometools",
+    "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/input_config.json",
+    "fragmentation": "HCD",
+    "mass_analyzer": "FTMS",
 }
 
 
@@ -55,7 +58,7 @@ def train(config=None):
         if config["dataset"] == "example":
             train_dataset, val_dataset = get_example_data(config)
         else:
-            assert "dataset_source" in config
+            assert "data_source" in config
             train_dataset, val_dataset = get_proteometools_data(config)
 
         model = get_model(config)
@@ -70,7 +73,7 @@ def train(config=None):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     train(DEFAULT_CONFIG)
 
 

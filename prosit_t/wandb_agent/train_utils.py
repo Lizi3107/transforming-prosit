@@ -1,4 +1,4 @@
-from dlomix.data import IntensityDataset
+from prosit_t.data import IntensityDataset
 from dlomix.data.feature_extractors import (
     ModificationGainFeature,
     ModificationLocationFeature,
@@ -57,6 +57,8 @@ def get_proteometools_data(config):
     data_source = config["data_source"]
     BATCH_SIZE = config["batch_size"]
     SEQ_LENGTH = config["seq_length"]
+    FRAGMENTATION = config["fragmentation"]
+    MASS_ANALYZER = config["mass_analyzer"]
     int_data = IntensityDataset(
         data_source=data_source,
         seq_length=SEQ_LENGTH,
@@ -76,5 +78,7 @@ def get_proteometools_data(config):
             "max_peptide_length": SEQ_LENGTH,
             "max_precursor_charge": 6,
         },
+        fragmentation_filter=FRAGMENTATION,
+        mass_analyzer_filter=MASS_ANALYZER,
     )
     return int_data.train_data, int_data.val_data

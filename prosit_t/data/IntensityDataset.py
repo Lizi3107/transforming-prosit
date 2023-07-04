@@ -1,7 +1,6 @@
 from os.path import dirname, join
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
 from dlomix.utils import convert_nested_list_to_numpy_array, flatten_dict_for_values
@@ -44,6 +43,8 @@ class IntensityDataset(AbstractDataset):
         a string with a path to a CSV table with the atom counts of the different amino acids (can be used for feature extraction). Defaults to None.
     sample_run : bool, optional
         a boolean to limit the number of examples to a small number, SAMPLE_RUN_N, for testing and debugging purposes. Defaults to False.
+    sequence_filtering_criteria : dict, optional
+        a dictionary with the filtering criteria to be used to filter the sequences. Defaults to None.
     """
 
     # TODO: For test dataset --> examples with longer sequences --> do not drop, add NaN for prediction
@@ -67,6 +68,9 @@ class IntensityDataset(AbstractDataset):
         test=False,
         path_aminoacid_atomcounts=None,
         sample_run=False,
+        sequence_filtering_criteria=None,
+        fragmentation_filter=None,
+        mass_analyzer_filter=None,
     ):
         super().__init__(
             data_source,
@@ -89,6 +93,8 @@ class IntensityDataset(AbstractDataset):
         self.precursor_charge_col = precursor_charge_col.lower()
         self.intensities_col = self.target_col
 
+        self.sequence_filtering_criteria = sequence_filtering_criteria
+
         self.normalize_targets = normalize_targets
 
         self.no_intensities = self.testing_mode
@@ -100,6 +106,9 @@ class IntensityDataset(AbstractDataset):
 
         self.features_df = None
         self.example_id = None
+
+        self.fragmentation_filter = fragmentation_filter
+        self.mass_analyzer_filter = mass_analyzer_filter
 
         # if data is provided with the constructor call --> load, otherwise --> done
         if self.data_source is not None:
@@ -169,6 +178,10 @@ class IntensityDataset(AbstractDataset):
 
             # lower all column names
             df.columns = [col_name.lower() for col_name in df.columns]
+            if self.fragmentation_filter is not None:
+                df = df[df["fragmentation"] == self.fragmentation_filter]
+            if self.mass_analyzer_filter is not None:
+                df = df[df["mass_analyzer"] == self.mass_analyzer_filter]
 
             # retrieve columns from the dataframe
             self.sequences = df[self.sequence_col]
@@ -222,6 +235,7 @@ class IntensityDataset(AbstractDataset):
                 join(base_dir, file) for file in annotations_filepaths
             ]
 
+        # all annotation files are assumed to be in the same directory
         if len(annotations_filepaths) > 0:
             annotations_dir = dirname(annotations_filepaths[0])
         else:
@@ -230,10 +244,25 @@ class IntensityDataset(AbstractDataset):
             )
 
         # ToDo: consider options to check if the files were processed earlier and skip this step since it is time consuming
+
+        # to pass sequence_filtering_criteria
+        # example below
+        # self.sequence_filtering_criteria = {
+        #    "min_andromeda_score": "",
+        #    "max_peptide_length": self.seq_length,
+        #    "max_precursor_charge": 6,
+        # }
+
+        print("Optionally Downloading and processing the data...")
+        print("Annotations directory: ", annotations_dir)
+        print("Metadata filepath: ", meta_data_filepath)
+        print("Base directory: ", base_dir)
+
         self.data_source = prospect.download_process_pool(
             annotations_data_dir=annotations_dir,
             metadata_path=meta_data_filepath,
             save_filepath=join(base_dir, "processed_pool.parquet"),
+            sequence_filtering_criteria=self.sequence_filtering_criteria,
         )
 
         self.intensities_col = json_dict.get(IntensityDataset.PARAMS_KEY, {}).get(
@@ -332,7 +361,7 @@ class IntensityDataset(AbstractDataset):
 
             self.tf_dataset[split] = (
                 self.tf_dataset[split]
-                .batch(self.batch_size, drop_remainder=True)
+                .batch(self.batch_size)
                 .prefetch(IntensityDataset.BATCHES_TO_PREFETCH)
             )
 
