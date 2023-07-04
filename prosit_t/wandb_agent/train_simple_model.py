@@ -22,6 +22,7 @@ DEFAULT_CONFIG = {
     "ff_dim": 32,
     "num_heads": 16,
     "transformer_dropout": 0.1,
+    "dataset": "example",
 }
 
 
@@ -52,10 +53,10 @@ def train(config=None):
         config = dict(wandb.config)
 
         if config["dataset"] == "example":
-            train_dataset, val_dataset = get_example_data(run, config)
+            train_dataset, val_dataset = get_example_data(config)
         else:
             assert "dataset_source" in config
-            train_dataset, val_dataset = get_proteometools_data(run, config)
+            train_dataset, val_dataset = get_proteometools_data(config)
 
         model = get_model(config)
         callbacks = get_callbacks(config)
