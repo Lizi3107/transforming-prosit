@@ -40,7 +40,7 @@ def create_data_source_json(pool_keyword):
         json.dump(input_data_dict, fp)
 
 
-def get_example_data(run, config):
+def get_example_data(config):
     BATCH_SIZE = config["batch_size"]
     int_data = IntensityDataset(
         data_source=TRAIN_DATAPATH,
@@ -53,8 +53,8 @@ def get_example_data(run, config):
     return int_data.train_data, int_data.val_data
 
 
-def get_proteometools_data(run, config):
-    data_source = config["data_source_json"]
+def get_proteometools_data(config):
+    data_source = config["data_source"]
     BATCH_SIZE = config["batch_size"]
     SEQ_LENGTH = config["seq_length"]
     int_data = IntensityDataset(
