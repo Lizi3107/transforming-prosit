@@ -12,8 +12,8 @@ PROJECT_NAME = "transforming-prosit"
 EPOCHS = 200
 
 DEFAULT_CONFIG = {
-    "learning_rate": 0.0001,
-    "batch_size": 128,
+    "learning_rate": 0.0002,
+    "batch_size": 512,
     "embedding_output_dim": 64,
     "seq_length": 30,
     "len_fion": 6,
@@ -26,6 +26,7 @@ DEFAULT_CONFIG = {
     "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/input_config.json",
     "fragmentation": "HCD",
     "mass_analyzer": "FTMS",
+    "num_transformers": 2
 }
 
 

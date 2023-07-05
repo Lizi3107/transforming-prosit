@@ -18,7 +18,7 @@ DEFAULT_CONFIG = {
     "recurrent_layers_sizes": (256, 512),
     "regressor_layer_size": 512,
     "dataset": "proteometools",
-    "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/input_config.json",
+    "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/prosit_t/data/first_pool.json",
     "fragmentation": "HCD",
     "mass_analyzer": "FTMS",
 }
