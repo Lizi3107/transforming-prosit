@@ -26,7 +26,7 @@ DEFAULT_CONFIG = {
     "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/input_config.json",
     "fragmentation": "HCD",
     "mass_analyzer": "FTMS",
-    "num_transformers": 2
+    "num_transformers": 2,
 }
 
 
