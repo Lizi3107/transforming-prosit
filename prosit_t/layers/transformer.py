@@ -37,7 +37,6 @@ class TransformerEncoder(tf.keras.layers.Layer):
                 num_heads=num_heads,
                 ff_dim=ff_dim,
                 rate=rate,
-                num_transformers=num_transformers,
             )
             for _ in range(num_transformers)
         ]
