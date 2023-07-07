@@ -1,4 +1,3 @@
-import tensorflow as tf
 from keras.callbacks import EarlyStopping
 import wandb
 from wandb.keras import WandbCallback
@@ -6,6 +5,7 @@ from prosit_t.models import PrositSimpleIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.constants import ALPHABET_UNMOD
 from train_utils import get_example_data, get_proteometools_data
+from prosit_t.optimizers.cyclic_lr import CyclicLR
 import os
 
 PROJECT_NAME = "transforming-prosit"
@@ -18,7 +18,7 @@ DEFAULT_CONFIG = {
     "seq_length": 30,
     "len_fion": 6,
     "vocab_dict": ALPHABET_UNMOD,
-    "dropout_rate": 0,
+    "dropout_rate": 0.2,
     "ff_dim": 32,
     "num_heads": 16,
     "transformer_dropout": 0.1,
@@ -33,7 +33,7 @@ DEFAULT_CONFIG = {
 def get_model(config):
     model = PrositSimpleIntensityPredictor(**config)
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
+        optimizer="adam",
         loss=masked_spectral_distance,
         metrics=[masked_pearson_correlation_distance],
     )
@@ -47,7 +47,8 @@ def get_callbacks(config):
         monitor="val_loss", patience=PATIENCE, restore_best_weights=True, verbose=1
     )
     cb_wandb = WandbCallback()
-    callbacks = [callback_earlystopping, cb_wandb]
+    cb_cyclic_lr = CyclicLR(base_lr=0.0000001, max_lr=0.001, step_size=8)
+    callbacks = [callback_earlystopping, cb_wandb, cb_cyclic_lr]
     return callbacks
 
 
@@ -74,7 +75,7 @@ def train(config=None):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     train(DEFAULT_CONFIG)
 
 
