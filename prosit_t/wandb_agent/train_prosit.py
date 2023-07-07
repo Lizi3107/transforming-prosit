@@ -41,11 +41,7 @@ def get_model(config):
 
 
 def get_callbacks(config):
-    cb_cyclic_lr = CyclicLR(
-        base_lr=0.0000001,
-        max_lr=0.001,
-        step_size=8
-    )
+    cb_cyclic_lr = CyclicLR(base_lr=0.0000001, max_lr=0.001, step_size=8)
     cb_wandb = WandbCallback()
     callbacks = [cb_wandb, cb_cyclic_lr]
     return callbacks
