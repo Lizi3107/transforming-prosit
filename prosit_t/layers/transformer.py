@@ -25,3 +25,24 @@ class TransformerBlock(tf.keras.layers.Layer):
         ffn_output = self.ffn(out1)
         ffn_output = self.dropout2(ffn_output, training=training)
         return self.layernorm2(out1 + ffn_output)
+
+
+class TransformerEncoder(tf.keras.layers.Layer):
+    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1, num_transformers=2):
+        super().__init__()
+        self.num_transformers = num_transformers
+        self.transformer_blocks = [
+            TransformerBlock(
+                embed_dim=embed_dim,
+                num_heads=num_heads,
+                ff_dim=ff_dim,
+                rate=rate,
+            )
+            for _ in range(num_transformers)
+        ]
+
+    def call(self, x, **kwargs):
+        for i in range(self.num_transformers):
+            x = self.transformer_blocks[i](x)
+
+        return x

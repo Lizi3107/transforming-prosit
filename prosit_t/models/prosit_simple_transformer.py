@@ -6,7 +6,7 @@ from prosit_t.layers import (
     FusionLayer,
     RegressorV2,
     PositionalEmbedding,
-    TransformerBlock,
+    TransformerEncoder,
 )
 
 
@@ -21,6 +21,8 @@ class PrositSimpleIntensityPredictor(tf.keras.Model):
         regressor_layer_size=512,
         num_heads=8,
         ff_dim=32,
+        transformer_dropout=0.1,
+        num_transformers=2,
         **kwargs
     ):
         super(PrositSimpleIntensityPredictor, self).__init__()
@@ -39,11 +41,8 @@ class PrositSimpleIntensityPredictor(tf.keras.Model):
             self.embeddings_count, embedding_output_dim
         )
         self.meta_encoder = MetaEncoder(embedding_output_dim, dropout_rate)
-        self.transformer_1 = TransformerBlock(
-            embedding_output_dim, num_heads, ff_dim, rate=dropout_rate
-        )
-        self.transformer_2 = TransformerBlock(
-            embedding_output_dim, num_heads, ff_dim, rate=dropout_rate
+        self.transformer_encoder = TransformerEncoder(
+            embedding_output_dim, num_heads, ff_dim, rate=transformer_dropout, num_transformers=num_transformers
         )
 
         self.flatten_1 = tf.keras.layers.Flatten()
@@ -76,8 +75,7 @@ class PrositSimpleIntensityPredictor(tf.keras.Model):
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
         x = self.string_lookup(peptides_in)
         x = self.pos_embedding(x)
-        x = self.transformer_1(x)
-        x = self.transformer_2(x)
+        x = self.transformer_encoder(x)
         x = self.flatten_1(x)
         x = self.dense_1(x)
         x = self.fusion_layer([x, encoded_meta])
