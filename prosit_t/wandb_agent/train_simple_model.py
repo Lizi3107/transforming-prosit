@@ -4,7 +4,7 @@ from wandb.keras import WandbCallback
 from prosit_t.models import PrositSimpleIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.constants import ALPHABET_UNMOD
-from train_utils import get_example_data, get_proteometools_data
+from train_utils import get_example_data, get_proteometools_data, train
 from prosit_t.optimizers.cyclic_lr import CyclicLR
 import os
 
@@ -50,28 +50,6 @@ def get_callbacks(config):
     cb_cyclic_lr = CyclicLR(base_lr=0.0000001, max_lr=0.001, step_size=8)
     callbacks = [callback_earlystopping, cb_wandb, cb_cyclic_lr]
     return callbacks
-
-
-def train(config=None):
-    with wandb.init(config=config, project=PROJECT_NAME) as run:
-        config = wandb.config
-        config = dict(wandb.config)
-
-        if config["dataset"] == "example":
-            train_dataset, val_dataset = get_example_data(config)
-        else:
-            assert "data_source" in config
-            train_dataset, val_dataset = get_proteometools_data(config)
-
-        model = get_model(config)
-        callbacks = get_callbacks(config)
-        model.fit(
-            train_dataset,
-            validation_data=val_dataset,
-            epochs=EPOCHS,
-            callbacks=callbacks,
-        )
-        model.summary()
 
 
 def main():

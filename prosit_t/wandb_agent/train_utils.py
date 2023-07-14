@@ -1,4 +1,4 @@
-from prosit_t.data import IntensityDataset
+from dlomix.data import IntensityDataset
 from dlomix.data.feature_extractors import (
     ModificationGainFeature,
     ModificationLocationFeature,
@@ -9,10 +9,16 @@ import os
 from pathlib import Path
 import itertools
 import json
+import wandb
+from wandb.keras import WandbCallback
+from keras.callbacks import EarlyStopping
+from prosit_t.optimizers.cyclic_lr import CyclicLR
+
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
+PROJECT_NAME = "transforming-prosit"
 
 
 def create_data_source_json(pool_keyword):
@@ -58,7 +64,13 @@ def get_proteometools_data(config):
     BATCH_SIZE = config["batch_size"]
     SEQ_LENGTH = config["seq_length"]
     FRAGMENTATION = config["fragmentation"]
-    MASS_ANALYZER = config["mass_analyzer"]
+    metadata_filtering_criteria = {
+        "peptide_length": f"<= {SEQ_LENGTH}",
+        "precursor_charge": "<= 6",
+        "fragmentation": f"== '{FRAGMENTATION}'",
+    }
+    if "mass_analyzer" in config:
+        metadata_filtering_criteria["mass_analyzer"] = f"== '{config['mass_analyzer']}'"
     int_data = IntensityDataset(
         data_source=data_source,
         seq_length=SEQ_LENGTH,
@@ -74,11 +86,50 @@ def get_proteometools_data(config):
             ModificationGainFeature(),
         ],
         parser="proforma",
-        sequence_filtering_criteria={
-            "max_peptide_length": SEQ_LENGTH,
-            "max_precursor_charge": 6,
-        },
-        fragmentation_filter=FRAGMENTATION,
-        mass_analyzer_filter=MASS_ANALYZER,
+        metadata_filtering_criteria=metadata_filtering_criteria,
     )
     return int_data.train_data, int_data.val_data
+
+
+def get_callbacks(config):
+    cb_wandb = WandbCallback()
+
+    callback_earlystopping = EarlyStopping(
+        monitor="val_loss",
+        patience=config["early_stopping"]["patience"],
+        min_delta=config["early_stopping"]["min_delta"],
+        restore_best_weights=True,
+        verbose=1,
+    )
+    callbacks = [cb_wandb, callback_earlystopping]
+    if "cyclic_lr" in config:
+        cb_cyclic_lr = CyclicLR(
+            base_lr=config["cyclic_lr"]["base_lr"],
+            max_lr=config["cyclic_lr"]["max_lr"],
+            step_size=config["cyclic_lr"]["step_size"],
+            gamma=config["cyclic_lr"]["gamma"],
+            mode=config["cyclic_lr"]["mode"],
+        )
+        callbacks.append(cb_cyclic_lr)
+    return callbacks
+
+
+def train(config, get_model):
+    with wandb.init(config=config, project=PROJECT_NAME) as run:
+        config = wandb.config
+        config = dict(wandb.config)
+
+        if config["dataset"] == "example":
+            train_dataset, val_dataset = get_example_data(config)
+        else:
+            assert "data_source" in config
+            train_dataset, val_dataset = get_proteometools_data(config)
+        model = get_model(config)
+        callbacks = get_callbacks(config)
+        model.fit(
+            train_dataset,
+            validation_data=val_dataset,
+            epochs=config["epochs"],
+            callbacks=callbacks,
+        )
+        model.summary()
