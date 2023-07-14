@@ -4,7 +4,11 @@ from wandb.keras import WandbCallback
 from dlomix.models import PrositIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.constants import ALPHABET_UNMOD
-from prosit_t.wandb_agent.train_utils import get_example_data, get_proteometools_data, train
+from prosit_t.wandb_agent.train_utils import (
+    get_example_data,
+    get_proteometools_data,
+    train,
+)
 from prosit_t.optimizers.cyclic_lr import CyclicLR
 
 PROJECT_NAME = "transforming-prosit"
@@ -52,9 +56,25 @@ def get_model(config):
 
 
 def get_callbacks(config):
-    cb_cyclic_lr = CyclicLR(base_lr=0.0000001, max_lr=0.001, step_size=8)
     cb_wandb = WandbCallback()
-    callbacks = [cb_wandb, cb_cyclic_lr]
+    
+    callback_earlystopping = EarlyStopping(
+        monitor="val_loss",
+        patience=config["early_stopping"]["patience"],
+        min_delta=config["early_stopping"]["min_delta"],
+        restore_best_weights=True,
+        verbose=1,
+    )
+    callbacks = [cb_wandb, callback_earlystopping]
+    if "cyclic_lr" in config:
+        cb_cyclic_lr = CyclicLR(
+            base_lr=config["cyclic_lr"]["base_lr"],
+            max_lr=config["cyclic_lr"]["max_lr"],
+            step_size=config["cyclic_lr"]["step_size"],
+            gamma=config["cyclic_lr"]["gamma"],
+            mode=config["cyclic_lr"]["mode"],
+        )
+        callbacks.append(cb_cyclic_lr)
     return callbacks
 
 
