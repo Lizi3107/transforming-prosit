@@ -1,4 +1,4 @@
-from prosit_t.data import IntensityDataset
+from dlomix.data import IntensityDataset
 from dlomix.data.feature_extractors import (
     ModificationGainFeature,
     ModificationLocationFeature,
@@ -9,10 +9,12 @@ import os
 from pathlib import Path
 import itertools
 import json
+import wandb
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
+PROJECT_NAME = "transforming-prosit"
 
 
 def create_data_source_json(pool_keyword):
@@ -58,7 +60,13 @@ def get_proteometools_data(config):
     BATCH_SIZE = config["batch_size"]
     SEQ_LENGTH = config["seq_length"]
     FRAGMENTATION = config["fragmentation"]
-    MASS_ANALYZER = config["mass_analyzer"]
+    metadata_filtering_criteria = {
+        "peptide_length": f"<= {SEQ_LENGTH}",
+        "precursor_charge": "<= 6",
+        "fragmentation": f"== {FRAGMENTATION}",
+    }
+    if "mass_analyzer" in config:
+        metadata_filtering_criteria["mass_analyzer"] = f"== {config['mass_analyzer']}"
     int_data = IntensityDataset(
         data_source=data_source,
         seq_length=SEQ_LENGTH,
@@ -74,11 +82,27 @@ def get_proteometools_data(config):
             ModificationGainFeature(),
         ],
         parser="proforma",
-        sequence_filtering_criteria={
-            "max_peptide_length": SEQ_LENGTH,
-            "max_precursor_charge": 6,
-        },
-        fragmentation_filter=FRAGMENTATION,
-        mass_analyzer_filter=MASS_ANALYZER,
+        metadata_filtering_criteria=metadata_filtering_criteria,
     )
     return int_data.train_data, int_data.val_data
+
+
+def train(config=None):
+    with wandb.init(config=config, project=PROJECT_NAME) as run:
+        config = wandb.config
+        config = dict(wandb.config)
+
+        if config["dataset"] == "example":
+            train_dataset, val_dataset = get_example_data(config)
+        else:
+            assert "data_source" in config
+            train_dataset, val_dataset = get_proteometools_data(config)
+        model = get_model(config)
+        callbacks = get_callbacks(config)
+        model.fit(
+            train_dataset,
+            validation_data=val_dataset,
+            epochs=config["epochs"],
+            callbacks=callbacks,
+        )
+        model.summary()
