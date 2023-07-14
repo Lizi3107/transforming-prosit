@@ -10,6 +10,10 @@ from pathlib import Path
 import itertools
 import json
 import wandb
+from wandb.keras import WandbCallback
+from keras.callbacks import EarlyStopping
+from prosit_t.optimizers.cyclic_lr import CyclicLR
+
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
@@ -63,10 +67,10 @@ def get_proteometools_data(config):
     metadata_filtering_criteria = {
         "peptide_length": f"<= {SEQ_LENGTH}",
         "precursor_charge": "<= 6",
-        "fragmentation": f"== {FRAGMENTATION}",
+        "fragmentation": f"== '{FRAGMENTATION}'",
     }
     if "mass_analyzer" in config:
-        metadata_filtering_criteria["mass_analyzer"] = f"== {config['mass_analyzer']}"
+        metadata_filtering_criteria["mass_analyzer"] = f"== '{config['mass_analyzer']}'"
     int_data = IntensityDataset(
         data_source=data_source,
         seq_length=SEQ_LENGTH,
@@ -87,7 +91,30 @@ def get_proteometools_data(config):
     return int_data.train_data, int_data.val_data
 
 
-def train(config=None):
+def get_callbacks(config):
+    cb_wandb = WandbCallback()
+
+    callback_earlystopping = EarlyStopping(
+        monitor="val_loss",
+        patience=config["early_stopping"]["patience"],
+        min_delta=config["early_stopping"]["min_delta"],
+        restore_best_weights=True,
+        verbose=1,
+    )
+    callbacks = [cb_wandb, callback_earlystopping]
+    if "cyclic_lr" in config:
+        cb_cyclic_lr = CyclicLR(
+            base_lr=config["cyclic_lr"]["base_lr"],
+            max_lr=config["cyclic_lr"]["max_lr"],
+            step_size=config["cyclic_lr"]["step_size"],
+            gamma=config["cyclic_lr"]["gamma"],
+            mode=config["cyclic_lr"]["mode"],
+        )
+        callbacks.append(cb_cyclic_lr)
+    return callbacks
+
+
+def train(config, get_model):
     with wandb.init(config=config, project=PROJECT_NAME) as run:
         config = wandb.config
         config = dict(wandb.config)

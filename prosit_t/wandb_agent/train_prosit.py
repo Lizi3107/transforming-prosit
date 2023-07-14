@@ -9,12 +9,12 @@ from prosit_t.wandb_agent.train_utils import (
     get_proteometools_data,
     train,
 )
-from prosit_t.optimizers.cyclic_lr import CyclicLR
+
 
 PROJECT_NAME = "transforming-prosit"
 DEFAULT_CONFIG = {
     "learning_rate": 0.0001,
-    "batch_size": 64,
+    "batch_size": 1024,
     "embedding_output_dim": 16,
     "seq_length": 30,
     "len_fion": 6,
@@ -55,31 +55,8 @@ def get_model(config):
     return model
 
 
-def get_callbacks(config):
-    cb_wandb = WandbCallback()
-    
-    callback_earlystopping = EarlyStopping(
-        monitor="val_loss",
-        patience=config["early_stopping"]["patience"],
-        min_delta=config["early_stopping"]["min_delta"],
-        restore_best_weights=True,
-        verbose=1,
-    )
-    callbacks = [cb_wandb, callback_earlystopping]
-    if "cyclic_lr" in config:
-        cb_cyclic_lr = CyclicLR(
-            base_lr=config["cyclic_lr"]["base_lr"],
-            max_lr=config["cyclic_lr"]["max_lr"],
-            step_size=config["cyclic_lr"]["step_size"],
-            gamma=config["cyclic_lr"]["gamma"],
-            mode=config["cyclic_lr"]["mode"],
-        )
-        callbacks.append(cb_cyclic_lr)
-    return callbacks
-
-
 def main():
-    train(DEFAULT_CONFIG)
+    train(DEFAULT_CONFIG, get_model)
 
 
 if __name__ == "__main__":
