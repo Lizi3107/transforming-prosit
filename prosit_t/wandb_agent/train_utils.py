@@ -68,6 +68,7 @@ def get_proteometools_data(config):
         "peptide_length": f"<= {SEQ_LENGTH}",
         "precursor_charge": "<= 6",
         "fragmentation": f"== '{FRAGMENTATION}'",
+        "andromeda_score": ">= 70",
     }
     if "mass_analyzer" in config:
         metadata_filtering_criteria["mass_analyzer"] = f"== '{config['mass_analyzer']}'"

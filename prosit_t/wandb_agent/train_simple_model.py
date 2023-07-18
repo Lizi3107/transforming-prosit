@@ -1,31 +1,38 @@
-from keras.callbacks import EarlyStopping
-import wandb
-from wandb.keras import WandbCallback
 from prosit_t.models import PrositSimpleIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.constants import ALPHABET_UNMOD
-from train_utils import get_example_data, get_proteometools_data, train
-from prosit_t.optimizers.cyclic_lr import CyclicLR
+from train_utils import train
 import os
 
 PROJECT_NAME = "transforming-prosit"
-EPOCHS = 200
 
 DEFAULT_CONFIG = {
     "learning_rate": 0.0002,
-    "batch_size": 512,
+    "batch_size": 1024,
     "embedding_output_dim": 64,
     "seq_length": 30,
     "len_fion": 6,
     "vocab_dict": ALPHABET_UNMOD,
     "dropout_rate": 0.2,
     "ff_dim": 32,
-    "num_heads": 16,
+    "num_heads": 64,
     "transformer_dropout": 0.1,
     "dataset": "proteometools",
-    "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/input_config.json",
+    "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/prosit_t/data/first_pool.json",
     "fragmentation": "HCD",
-    "mass_analyzer": "FTMS",
+    # "mass_analyzer": "FTMS",
+    "cyclic_lr": {
+        "max_lr": 0.0002,
+        "base_lr": 0.00001,
+        "mode": "triangular",
+        "gamma": 0.95,
+        "step_size": 4,
+    },
+    "early_stopping": {
+        "patience": 30,
+        "min_delta": 0.0001,
+    },
+    "epochs": 500,
     "num_transformers": 2,
 }
 
@@ -41,20 +48,9 @@ def get_model(config):
     return model
 
 
-def get_callbacks(config):
-    PATIENCE = 10
-    callback_earlystopping = EarlyStopping(
-        monitor="val_loss", patience=PATIENCE, restore_best_weights=True, verbose=1
-    )
-    cb_wandb = WandbCallback()
-    cb_cyclic_lr = CyclicLR(base_lr=0.0000001, max_lr=0.001, step_size=8)
-    callbacks = [callback_earlystopping, cb_wandb, cb_cyclic_lr]
-    return callbacks
-
-
 def main():
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    train(DEFAULT_CONFIG)
+    train(DEFAULT_CONFIG, get_model)
 
 
 if __name__ == "__main__":
