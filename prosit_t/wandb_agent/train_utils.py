@@ -60,36 +60,40 @@ def get_example_data(config):
 
 
 def get_proteometools_data(config):
-    data_source = config["data_source"]
-    BATCH_SIZE = config["batch_size"]
-    SEQ_LENGTH = config["seq_length"]
-    FRAGMENTATION = config["fragmentation"]
-    metadata_filtering_criteria = {
-        "peptide_length": f"<= {SEQ_LENGTH}",
-        "precursor_charge": "<= 6",
-        "fragmentation": f"== '{FRAGMENTATION}'",
-        "andromeda_score": ">= 70",
-    }
-    if "mass_analyzer" in config:
-        metadata_filtering_criteria["mass_analyzer"] = f"== '{config['mass_analyzer']}'"
-    int_data = IntensityDataset(
-        data_source=data_source,
-        seq_length=SEQ_LENGTH,
-        batch_size=BATCH_SIZE,
-        val_ratio=0.15,
-        precursor_charge_col="precursor_charge_onehot",
-        sequence_col="modified_sequence",
-        collision_energy_col="collision_energy_aligned_normed",
-        intensities_col="intensities_raw",
-        features_to_extract=[
-            ModificationLocationFeature(),
-            ModificationLossFeature(),
-            ModificationGainFeature(),
-        ],
-        parser="proforma",
-        metadata_filtering_criteria=metadata_filtering_criteria,
-    )
-    return int_data.train_data, int_data.val_data
+    # data_source = config["data_source"]
+    # BATCH_SIZE = config["batch_size"]
+    # SEQ_LENGTH = config["seq_length"]
+    # FRAGMENTATION = config["fragmentation"]
+    # metadata_filtering_criteria = {
+    #     "peptide_length": f"<= {SEQ_LENGTH}",
+    #     "precursor_charge": "<= 6",
+    #     "fragmentation": f"== '{FRAGMENTATION}'",
+    #     "andromeda_score": ">= 70",
+    # }
+    # if "mass_analyzer" in config:
+    #     metadata_filtering_criteria["mass_analyzer"] = f"== '{config['mass_analyzer']}'"
+    # int_data = IntensityDataset(
+    #     data_source=data_source,
+    #     seq_length=SEQ_LENGTH,
+    #     batch_size=BATCH_SIZE,
+    #     val_ratio=0.15,
+    #     precursor_charge_col="precursor_charge_onehot",
+    #     sequence_col="modified_sequence",
+    #     collision_energy_col="collision_energy_aligned_normed",
+    #     intensities_col="intensities_raw",
+    #     features_to_extract=[
+    #         ModificationLocationFeature(),
+    #         ModificationLossFeature(),
+    #         ModificationGainFeature(),
+    #     ],
+    #     parser="proforma",
+    #     metadata_filtering_criteria=metadata_filtering_criteria,
+    # )
+    from tensorflow.data import Dataset
+
+    train_data = Dataset.load("../../notebooks/train_data")
+    val_data = Dataset.load("../../notebooks/val_data")
+    return train_data, val_data
 
 
 def get_callbacks(config):
