@@ -1,9 +1,4 @@
 from dlomix.data import IntensityDataset
-from dlomix.data.feature_extractors import (
-    ModificationGainFeature,
-    ModificationLocationFeature,
-    ModificationLossFeature,
-)
 import glob
 import os
 from pathlib import Path
@@ -18,7 +13,7 @@ from prosit_t.optimizers.cyclic_lr import CyclicLR
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
-PROJECT_NAME = "transforming-prosit"
+PROJECT_NAME = "transforming-prosit-big-data"
 
 
 def create_data_source_json(pool_keyword):
@@ -71,7 +66,8 @@ def get_proteometools_data(config):
     #     "andromeda_score": ">= 70",
     # }
     # if "mass_analyzer" in config:
-    #     metadata_filtering_criteria["mass_analyzer"] = f"== '{config['mass_analyzer']}'"
+    #     mass_analyzer = config['mass_analyzer']
+    #     metadata_filtering_criteria["mass_analyzer"] = f"== '{mass_analyzer}'"
     # int_data = IntensityDataset(
     #     data_source=data_source,
     #     seq_length=SEQ_LENGTH,
@@ -91,8 +87,12 @@ def get_proteometools_data(config):
     # )
     from tensorflow.data import Dataset
 
-    train_data = Dataset.load("../../notebooks/train_data")
-    val_data = Dataset.load("../../notebooks/val_data")
+    train_data = Dataset.load(
+        "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/train_data"
+    )
+    val_data = Dataset.load(
+        "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/val_data"
+    )
     return train_data, val_data
 
 
@@ -120,7 +120,7 @@ def get_callbacks(config):
 
 
 def train(config, get_model):
-    with wandb.init(config=config, project=PROJECT_NAME) as run:
+    with wandb.init(config=config, project=PROJECT_NAME) as _:
         config = wandb.config
         config = dict(wandb.config)
 
