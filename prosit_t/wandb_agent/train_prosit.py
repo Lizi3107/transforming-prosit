@@ -3,11 +3,12 @@ from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_d
 from dlomix.constants import ALPHABET_UNMOD
 from prosit_t.wandb_agent.train_utils import train
 import os
+import tensorflow as tf
 
 
 PROJECT_NAME = "transforming-prosit"
 DEFAULT_CONFIG = {
-    "learning_rate": 0.0001,
+    "learning_rate": 1e-2,
     "batch_size": 1024,
     "embedding_output_dim": 16,
     "seq_length": 30,
@@ -16,21 +17,25 @@ DEFAULT_CONFIG = {
     "recurrent_layers_sizes": (256, 512),
     "regressor_layer_size": 512,
     "dataset": "proteometools",
-    "data_source": "/cmnfs/home/l.mamisashvili/transforming-prosit/prosit_t/data/first_pool.json",
+    "data_source": """
+        /cmnfs/home/l.mamisashvili/transforming-prosit
+        /prosit_t/data/first_pool_copy.json
+    """,
     "fragmentation": "HCD",
     # "mass_analyzer": "FTMS",
-    "cyclic_lr": {
-        "max_lr": 0.0002,
-        "base_lr": 0.00001,
-        "mode": "triangular",
-        "gamma": 0.95,
-        "step_size": 2484,
-    },
+    # "cyclic_lr": {
+    #     "max_lr": 0.0002,
+    #     "base_lr": 0.00001,
+    #     "mode": "triangular",
+    #     "gamma": 0.95,
+    #     "step_size": 2484,
+    # },
     "early_stopping": {
         "patience": 30,
         "min_delta": 0.0001,
     },
     "epochs": 500,
+    "weight_decay": 0.001,
 }
 
 
@@ -41,7 +46,9 @@ def get_model(config):
         recurrent_layers_sizes=config["recurrent_layers_sizes"],
     )
     model.compile(
-        optimizer="adam",
+        optimizer=tf.keras.optimizers.Adam(
+            learning_rate=config["learning_rate"], decay=config["weight_decay"]
+        ),
         loss=masked_spectral_distance,
         metrics=[masked_pearson_correlation_distance],
     )
@@ -50,7 +57,9 @@ def get_model(config):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    physical_devices = tf.config.list_physical_devices("GPU")
+    tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
 
 
