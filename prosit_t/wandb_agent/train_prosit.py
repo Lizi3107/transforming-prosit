@@ -1,14 +1,8 @@
-import tensorflow as tf
-import wandb
-from wandb.keras import WandbCallback
 from dlomix.models import PrositIntensityPredictor
 from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
 from dlomix.constants import ALPHABET_UNMOD
-from prosit_t.wandb_agent.train_utils import (
-    get_example_data,
-    get_proteometools_data,
-    train,
-)
+from prosit_t.wandb_agent.train_utils import train
+import os
 
 
 PROJECT_NAME = "transforming-prosit"
@@ -30,7 +24,7 @@ DEFAULT_CONFIG = {
         "base_lr": 0.00001,
         "mode": "triangular",
         "gamma": 0.95,
-        "step_size": 4,
+        "step_size": 2484,
     },
     "early_stopping": {
         "patience": 30,
@@ -56,6 +50,7 @@ def get_model(config):
 
 
 def main():
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     train(DEFAULT_CONFIG, get_model)
 
 
