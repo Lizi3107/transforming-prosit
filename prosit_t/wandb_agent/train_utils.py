@@ -8,7 +8,11 @@ import wandb
 from wandb.keras import WandbCallback
 from keras.callbacks import EarlyStopping
 from prosit_t.optimizers.cyclic_lr import CyclicLR
-
+from dlomix.data.feature_extractors import (
+    ModificationGainFeature,
+    ModificationLocationFeature,
+    ModificationLossFeature,
+)
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
@@ -83,7 +87,6 @@ def get_proteometools_data(config):
     #         ModificationGainFeature(),
     #     ],
     #     parser="proforma",
-    #     metadata_filtering_criteria=metadata_filtering_criteria,
     # )
     from tensorflow.data import Dataset
 

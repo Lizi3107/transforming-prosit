@@ -10,3 +10,8 @@ __pycache__/
 
 *.parquet
 *.zip
+
+notebooks/train_data
+notebooks/val_data
+
+checkpoint
