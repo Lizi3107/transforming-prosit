@@ -1,8 +1,8 @@
 from prosit_t.models import PrositSimpleIntensityPredictor
 import tensorflow as tf
-from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
+from dlomix.losses import masked_spectral_distance
 from dlomix.constants import ALPHABET_UNMOD
-from train_utils import train
+from prosit_t.wandb_agent.train_utils import train
 import os
 
 PROJECT_NAME = "transforming-prosit"
@@ -19,19 +19,8 @@ DEFAULT_CONFIG = {
     "num_heads": 16,
     "transformer_dropout": 0.1,
     "dataset": "proteometools",
-    "data_source": """
-        /cmnfs/home/l.mamisashvili/transforming-prosit/
-        prosit_t/data/first_pool_copy.json
-    """,
+    "data_source": "/cmnfs/proj/prosit/Transformer/first_pool.parquet",
     "fragmentation": "HCD",
-    # "mass_analyzer": "FTMS",
-    # "cyclic_lr": {
-    #     "max_lr": 0.0004,
-    #     "base_lr": 0.0001,
-    #     "mode": "triangular",
-    #     "gamma": 0.95,
-    #     "step_size": 2484,
-    # },
     "early_stopping": {
         "patience": 30,
         "min_delta": 0.0001,
@@ -43,24 +32,18 @@ DEFAULT_CONFIG = {
 
 def get_model(config):
     model = PrositSimpleIntensityPredictor(**config)
-    # optimizer = (
-    #     "adam"
-    #     if "cyclic_lr" in config
-    #     else tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
-    # )
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
         loss=masked_spectral_distance,
-        metrics=[masked_pearson_correlation_distance],
     )
 
     return model
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    # physical_devices = tf.config.list_physical_devices("GPU")
+    # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
 
 
