@@ -8,16 +8,11 @@ import wandb
 from wandb.keras import WandbCallback
 from keras.callbacks import EarlyStopping
 from prosit_t.optimizers.cyclic_lr import CyclicLR
-from dlomix.data.feature_extractors import (
-    ModificationGainFeature,
-    ModificationLocationFeature,
-    ModificationLossFeature,
-)
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
 TRAIN_DATAPATH = "https://raw.githubusercontent.com/wilhelm-lab/dlomix-resources/main/example_datasets/Intensity/proteomeTools_train_val.csv"
-PROJECT_NAME = "transforming-prosit-big-data"
+PROJECT_NAME = "transforming-prosit-first-pool"
 
 
 def create_data_source_json(pool_keyword):
@@ -59,44 +54,34 @@ def get_example_data(config):
 
 
 def get_proteometools_data(config):
-    # data_source = config["data_source"]
-    # BATCH_SIZE = config["batch_size"]
-    # SEQ_LENGTH = config["seq_length"]
-    # FRAGMENTATION = config["fragmentation"]
-    # metadata_filtering_criteria = {
-    #     "peptide_length": f"<= {SEQ_LENGTH}",
-    #     "precursor_charge": "<= 6",
-    #     "fragmentation": f"== '{FRAGMENTATION}'",
-    #     "andromeda_score": ">= 70",
-    # }
-    # if "mass_analyzer" in config:
-    #     mass_analyzer = config['mass_analyzer']
-    #     metadata_filtering_criteria["mass_analyzer"] = f"== '{mass_analyzer}'"
-    # int_data = IntensityDataset(
-    #     data_source=data_source,
-    #     seq_length=SEQ_LENGTH,
-    #     batch_size=BATCH_SIZE,
-    #     val_ratio=0.15,
-    #     precursor_charge_col="precursor_charge_onehot",
-    #     sequence_col="modified_sequence",
-    #     collision_energy_col="collision_energy_aligned_normed",
-    #     intensities_col="intensities_raw",
-    #     features_to_extract=[
-    #         ModificationLocationFeature(),
-    #         ModificationLossFeature(),
-    #         ModificationGainFeature(),
-    #     ],
-    #     parser="proforma",
-    # )
-    from tensorflow.data import Dataset
+    train_path, val_path = config["data_source"].values()
+    BATCH_SIZE = config["batch_size"]
+    int_data_train = IntensityDataset(
+        data_source=train_path,
+        seq_length=30,
+        batch_size=BATCH_SIZE,
+        val_ratio=0,
+        precursor_charge_col="precursor_charge_onehot",
+        sequence_col="modified_sequence",
+        collision_energy_col="collision_energy_aligned_normed",
+        intensities_col="intensities_raw",
+        parser="proforma",
+        test=False,
+    )
+    int_data_val = IntensityDataset(
+        data_source=val_path,
+        seq_length=30,
+        batch_size=BATCH_SIZE,
+        val_ratio=0,
+        precursor_charge_col="precursor_charge_onehot",
+        sequence_col="modified_sequence",
+        collision_energy_col="collision_energy_aligned_normed",
+        intensities_col="intensities_raw",
+        parser="proforma",
+        test=False,
+    )
 
-    train_data = Dataset.load(
-        "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/train_data"
-    )
-    val_data = Dataset.load(
-        "/cmnfs/home/l.mamisashvili/transforming-prosit/notebooks/val_data"
-    )
-    return train_data, val_data
+    return int_data_train.train_data, int_data_val.train_data
 
 
 def get_callbacks(config):
@@ -129,8 +114,10 @@ def train(config, get_model):
 
         if config["dataset"] == "example":
             train_dataset, val_dataset = get_example_data(config)
-        else:
+        elif config["dataset"] == "proteometools":
             assert "data_source" in config
+            assert "train" in config["data_source"]
+            assert "val" in config["data_source"]
             train_dataset, val_dataset = get_proteometools_data(config)
         model = get_model(config)
         callbacks = get_callbacks(config)
