@@ -1,9 +1,9 @@
 from dlomix.models import PrositIntensityPredictor
-from dlomix.losses import masked_spectral_distance, masked_pearson_correlation_distance
+from dlomix.losses import masked_spectral_distance
 from dlomix.constants import ALPHABET_UNMOD
 from prosit_t.wandb_agent.train_utils import train
 import tensorflow as tf
-
+import os
 
 PROJECT_NAME = "transforming-prosit"
 DEFAULT_CONFIG = {
@@ -16,14 +16,24 @@ DEFAULT_CONFIG = {
     "recurrent_layers_sizes": (256, 512),
     "regressor_layer_size": 512,
     "dataset": "proteometools",
-    "data_source": "/cmnfs/proj/prosit/Transformer/all_unmod.parquet",
+    "data_source": {
+        "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
+        "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
+    },
     "fragmentation": "HCD",
     "early_stopping": {
         "patience": 30,
         "min_delta": 0.0001,
     },
+    "cyclic_lr": {
+        "base_lr": 0.00001,
+        "gamma": 0.95,
+        "max_lr": 0.0002,
+        "mode": "triangular",
+        "step_size": 4,
+    },
     "epochs": 500,
-    "weight_decay": 0.001,
+    # "weight_decay": 0.001,
 }
 
 
@@ -33,21 +43,23 @@ def get_model(config):
         embedding_output_dim=config["embedding_output_dim"],
         recurrent_layers_sizes=config["recurrent_layers_sizes"],
     )
+    if "cyclic_lr" in config:
+        optimizer = "adam"
+    else:
+        optimizer = tf.keras.optimizers.Adam(learning_rate=config["learning_rate"])
+
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(
-            learning_rate=config["learning_rate"], decay=config["weight_decay"]
-        ),
+        optimizer=optimizer,
         loss=masked_spectral_distance,
-        metrics=[masked_pearson_correlation_distance],
     )
 
     return model
 
 
 def main():
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    # physical_devices = tf.config.list_physical_devices("GPU")
-    # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    physical_devices = tf.config.list_physical_devices("GPU")
+    tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
 
 
