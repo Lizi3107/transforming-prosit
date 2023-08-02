@@ -10,7 +10,7 @@ from prosit_t.layers import (
 )
 
 
-class PrositTransformer(tf.keras.Model):
+class PrositTransformerFusionUp(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -25,22 +25,25 @@ class PrositTransformer(tf.keras.Model):
         num_transformers=2,
         **kwargs
     ):
-        super(PrositTransformer, self).__init__()
+        super(PrositTransformerFusionUp, self).__init__()
 
         # tie the count of embeddings to the size of the vocabulary (count of aa)
         self.embeddings_count = len(vocab_dict) + 2
 
         # maximum number of fragment ions
         self.max_ion = seq_length - 1
-
+        self.meta_encoder = MetaEncoder(embedding_output_dim, dropout_rate)
         self.string_lookup = preprocessing.StringLookup(
             vocabulary=list(vocab_dict.keys())
         )
-
         self.pos_embedding = PositionalEmbedding(
             self.embeddings_count, embedding_output_dim
         )
-        self.meta_encoder = MetaEncoder(embedding_output_dim, dropout_rate)
+        # self.att = AttentionLayer()
+        self.flatten_1 = tf.keras.layers.Flatten()
+        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim)
+
+        self.fusion_layer = FusionLayer(self.max_ion)
         self.transformer_encoder = TransformerEncoder(
             embedding_output_dim,
             num_heads,
@@ -48,10 +51,6 @@ class PrositTransformer(tf.keras.Model):
             rate=transformer_dropout,
             num_transformers=num_transformers,
         )
-
-        self.flatten_1 = tf.keras.layers.Flatten()
-        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim)
-        self.fusion_layer = FusionLayer(self.max_ion)
         self.flatten_2 = tf.keras.layers.Flatten()
         self.regressor_td = RegressorV2(len_fion * self.max_ion)
 
@@ -79,10 +78,11 @@ class PrositTransformer(tf.keras.Model):
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
         x = self.string_lookup(peptides_in)
         x = self.pos_embedding(x)
-        x = self.transformer_encoder(x)
         x = self.flatten_1(x)
         x = self.dense_1(x)
+        # x = self.att(x)
         x = self.fusion_layer([x, encoded_meta])
+        x = self.transformer_encoder(x)
         x = self.flatten_2(x)
         x = self.regressor_td(x)
         return x

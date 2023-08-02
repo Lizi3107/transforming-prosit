@@ -1,4 +1,4 @@
-from prosit_t.models import PrositSimpleIntensityPredictor
+from prosit_t.models import PrositTransformerFusionUp
 import tensorflow as tf
 from dlomix.losses import masked_spectral_distance
 from dlomix.constants import ALPHABET_UNMOD
@@ -19,7 +19,10 @@ DEFAULT_CONFIG = {
     "num_heads": 16,
     "transformer_dropout": 0.1,
     "dataset": "proteometools",
-    "data_source": "/cmnfs/proj/prosit/Transformer/first_pool.parquet",
+    "data_source": {
+        "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
+        "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
+    },
     "fragmentation": "HCD",
     "early_stopping": {
         "patience": 30,
@@ -31,9 +34,13 @@ DEFAULT_CONFIG = {
 
 
 def get_model(config):
-    model = PrositSimpleIntensityPredictor(**config)
+    model = PrositTransformerFusionUp(**config)
+    if "cyclic_lr" in config:
+        optimizer = "adam"
+    else:
+        optimizer = tf.keras.optimizers.Adam(learning_rate=config["learning_rate"])
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=config["learning_rate"]),
+        optimizer=optimizer,
         loss=masked_spectral_distance,
     )
 
@@ -41,7 +48,7 @@ def get_model(config):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     # physical_devices = tf.config.list_physical_devices("GPU")
     # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
