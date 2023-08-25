@@ -1,4 +1,5 @@
 from prosit_t.models.prosit_transformer import PrositTransformer
+from prosit_t.models.prosit_transformer_v2 import PrositTransformerV2
 from prosit_t.models.prosit_transformer_meta_context import (
     PrositTransformerMetaContext,
 )
