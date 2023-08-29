@@ -6,8 +6,9 @@ import itertools
 import json
 import wandb
 from wandb.keras import WandbCallback
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LearningRateScheduler
 from prosit_t.optimizers.cyclic_lr import CyclicLR
+import tensorflow as tf
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
@@ -84,6 +85,13 @@ def get_proteometools_data(config):
     return int_data_train.train_data, int_data_val.train_data
 
 
+def scheduler(epoch, lr):
+    if epoch < 10:
+        return lr
+    else:
+        return lr * tf.math.exp(-0.1)
+
+
 def get_callbacks(config):
     cb_wandb = WandbCallback()
 
@@ -94,7 +102,15 @@ def get_callbacks(config):
         restore_best_weights=True,
         verbose=1,
     )
+
     callbacks = [cb_wandb, callback_earlystopping]
+    if "reduce_lr" in config:
+        callback_reduce_lr = ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=config["reduce_lr"]["factor"],
+            patience=config["reduce_lr"]["patience"],
+        )
+        callbacks.append(callback_reduce_lr)
     if "cyclic_lr" in config:
         cb_cyclic_lr = CyclicLR(
             base_lr=config["cyclic_lr"]["base_lr"],
@@ -104,6 +120,9 @@ def get_callbacks(config):
             mode=config["cyclic_lr"]["mode"],
         )
         callbacks.append(cb_cyclic_lr)
+    if "lr_scheduler" in config:
+        cb_lr_scheduler = LearningRateScheduler(scheduler)
+        callbacks.append(cb_lr_scheduler)
     return callbacks
 
 

@@ -3,12 +3,10 @@ from tensorflow.keras.layers.experimental import preprocessing
 from dlomix.constants import ALPHABET_UNMOD
 from prosit_t.layers import (
     MetaEncoder,
-    FusionLayer,
     RegressorV2,
     PositionalEmbedding,
     TransformerEncoder,
 )
-import keras_nlp
 
 
 class PrositTransformerV2(tf.keras.Model):
@@ -38,15 +36,10 @@ class PrositTransformerV2(tf.keras.Model):
         self.string_lookup = preprocessing.StringLookup(
             vocabulary=list(vocab_dict.keys())
         )
-        # self.pos_embedding = PositionalEmbedding(
-        #     self.embeddings_count, embedding_output_dim
-        # )
-
-        self.pos_embedding = keras_nlp.layers.TokenAndPositionEmbedding(
-            vocabulary_size=self.embeddings_count,
-            embedding_dim=embedding_output_dim,
-            sequence_length=seq_length,
+        self.pos_embedding = PositionalEmbedding(
+            self.embeddings_count, embedding_output_dim
         )
+
         self.meta_encoder = MetaEncoder(
             embedding_output_dim * dense_dim_factor, dropout_rate
         )
@@ -61,7 +54,6 @@ class PrositTransformerV2(tf.keras.Model):
         self.flatten_1 = tf.keras.layers.Flatten()
         self.dense_1 = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
         self.mul = tf.keras.layers.Multiply()
-        # self.fusion_layer = FusionLayer(self.max_ion)
         self.flatten_2 = tf.keras.layers.Flatten()
         self.regressor_td = RegressorV2(len_fion * self.max_ion)
 
