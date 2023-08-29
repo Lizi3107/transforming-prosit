@@ -10,11 +10,11 @@ PROJECT_NAME = "transforming-prosit"
 DEFAULT_CONFIG = {
     "learning_rate": 0.0001,
     "batch_size": 1024,
-    "embedding_output_dim": 32,
+    "embedding_output_dim": 64,
     "seq_length": 30,
     "len_fion": 6,
     "vocab_dict": ALPHABET_UNMOD,
-    "dropout_rate": 0,
+    "dropout_rate": 0.2,
     "ff_dim": 32,
     "num_heads": 16,
     "transformer_dropout": 0.1,
@@ -25,11 +25,23 @@ DEFAULT_CONFIG = {
     },
     "fragmentation": "HCD",
     "early_stopping": {
-        "patience": 30,
+        "patience": 8,
         "min_delta": 0.0001,
     },
+    "cyclic_lr": {
+        "base_lr": 0.00001,
+        "gamma": 0.95,
+        "max_lr": 0.0002,
+        "mode": "triangular",
+        "step_size": 4,
+    },
+    # "reduce_lr": {
+    #     "factor": 0.5,
+    #     "patience": 4
+    # },
+    # "lr_scheduler": True,
     "epochs": 500,
-    "num_transformers": 2,
+    "num_transformers": 6,
     "dense_dim_factor": 4,
 }
 
@@ -49,7 +61,7 @@ def get_model(config):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     physical_devices = tf.config.list_physical_devices("GPU")
     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
