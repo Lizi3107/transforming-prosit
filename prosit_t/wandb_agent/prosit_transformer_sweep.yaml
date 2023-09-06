@@ -1,0 +1,51 @@
+program: train_transformer_model_v2.py
+method: bayes
+metric:
+  goal: minimize
+  name: "val_loss"
+parameters:
+  transformer_dropout:
+    max: 0.1
+    min: 0.05
+    distribution: uniform
+  dropout_rate: 
+    value: 0
+  num_transformers:
+    value: 6
+  num_heads:
+    values: [8, 16, 32]
+    distribution: categorical
+  ff_dim:
+    value: 32
+  embedding_output_dim:
+    values: [64, 128]
+    distribution: categorical
+  dense_dim_factor:
+    values: [2, 4]
+  early_stopping.min_delta:
+    value: 0.0001
+  early_stopping.patience:
+    value: 8
+  reduce_lr.factor:
+    value: 0.8
+  reduce_lr.patience:
+    value: 4
+  learning_rate:
+    max: 0.002
+    min: 0.00005
+    distribution: uniform
+  data_source.train:
+    value: /cmnfs/proj/prosit/Transformer/first_pool_train.parquet
+  data_source.val:
+    value: /cmnfs/proj/prosit/Transformer/first_pool_test.parquet
+  seq_length:
+    value: 30
+  batch_size:
+    values: [512, 1024, 2048, 4096]
+    distribution: categorical
+  len_fion:
+    value: 6
+  dataset:
+    value: proteometools
+  epochs:
+    value: 200
