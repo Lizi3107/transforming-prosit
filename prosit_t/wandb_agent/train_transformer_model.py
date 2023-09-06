@@ -15,9 +15,9 @@ DEFAULT_CONFIG = {
     "len_fion": 6,
     "vocab_dict": ALPHABET_UNMOD,
     "dropout_rate": 0,
-    "ff_dim": 8192,
-    "num_heads": 32,
-    "transformer_dropout": 0.1,
+    "ff_dim": 32,
+    "num_heads": 16,
+    "transformer_dropout": 0,
     "dataset": "proteometools",
     "data_source": {
         "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
@@ -48,7 +48,7 @@ def get_model(config):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     physical_devices = tf.config.list_physical_devices("GPU")
     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)

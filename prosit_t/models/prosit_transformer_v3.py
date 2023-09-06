@@ -9,7 +9,7 @@ from prosit_t.layers import (
 )
 
 
-class PrositTransformerV2(tf.keras.Model):
+class PrositTransformerV3(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -17,6 +17,7 @@ class PrositTransformerV2(tf.keras.Model):
         len_fion=6,
         vocab_dict=ALPHABET_UNMOD,
         dropout_rate=0.2,
+        regressor_layer_size=512,
         num_heads=8,
         ff_dim=32,
         transformer_dropout=0.1,
@@ -24,7 +25,7 @@ class PrositTransformerV2(tf.keras.Model):
         dense_dim_factor=4,
         **kwargs,
     ):
-        super(PrositTransformerV2, self).__init__()
+        super(PrositTransformerV3, self).__init__()
 
         # tie the count of embeddings to the size of the vocabulary (count of aa)
         self.embeddings_count = len(vocab_dict) + 2
@@ -42,7 +43,7 @@ class PrositTransformerV2(tf.keras.Model):
         self.meta_encoder = MetaEncoder(
             embedding_output_dim * dense_dim_factor, dropout_rate
         )
-        self.transformer_encoder = TransformerEncoder(
+        self.transformer_encoder_1 = TransformerEncoder(
             embedding_output_dim,
             num_heads,
             ff_dim,
@@ -50,8 +51,16 @@ class PrositTransformerV2(tf.keras.Model):
             num_transformers=num_transformers,
         )
 
+        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim)
+        self.transformer_encoder_2 = TransformerEncoder(
+            embedding_output_dim,
+            num_heads,
+            ff_dim,
+            rate=transformer_dropout,
+            num_transformers=num_transformers,
+        )
         self.flatten_1 = tf.keras.layers.Flatten()
-        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
+        self.dense_2 = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
         self.mul = tf.keras.layers.Multiply()
         self.flatten_2 = tf.keras.layers.Flatten()
         self.regressor_td = RegressorV2(len_fion * self.max_ion)
@@ -80,9 +89,11 @@ class PrositTransformerV2(tf.keras.Model):
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
         x = self.string_lookup(peptides_in)
         x = self.pos_embedding(x)
-        x = self.transformer_encoder(x)
-        x = self.flatten_1(x)
+        x = self.transformer_encoder_1(x)
         x = self.dense_1(x)
+        x = self.transformer_encoder_2(x)
+        x = self.flatten_1(x)
+        x = self.dense_2(x)
         x = self.mul([x, encoded_meta])
         x = self.flatten_2(x)
         x = self.regressor_td(x)

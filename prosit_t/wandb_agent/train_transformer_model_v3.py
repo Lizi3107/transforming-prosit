@@ -1,8 +1,11 @@
-from prosit_t.models import PrositTransformerV2
+from prosit_t.models import PrositTransformerV3
 import tensorflow as tf
 from dlomix.losses import masked_spectral_distance
 from dlomix.constants import ALPHABET_UNMOD
 from prosit_t.wandb_agent.train_utils import train
+import os
+
+PROJECT_NAME = "transforming-prosit"
 
 DEFAULT_CONFIG = {
     "learning_rate": 0.0001,
@@ -20,19 +23,19 @@ DEFAULT_CONFIG = {
         "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
         "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
     },
+    "fragmentation": "HCD",
     "early_stopping": {
         "patience": 8,
         "min_delta": 0.0001,
     },
-    "reduce_lr": {"factor": 0.5, "patience": 4},
     "epochs": 500,
-    "num_transformers": 6,
+    "num_transformers": 3,
     "dense_dim_factor": 4,
 }
 
 
 def get_model(config):
-    model = PrositTransformerV2(**config)
+    model = PrositTransformerV3(**config)
     if "cyclic_lr" in config:
         optimizer = "adam"
     else:
@@ -46,9 +49,9 @@ def get_model(config):
 
 
 def main():
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-    physical_devices = tf.config.list_physical_devices("GPU")
-    tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    # physical_devices = tf.config.list_physical_devices("GPU")
+    # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
 
 
