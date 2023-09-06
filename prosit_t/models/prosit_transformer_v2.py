@@ -17,7 +17,6 @@ class PrositTransformerV2(tf.keras.Model):
         len_fion=6,
         vocab_dict=ALPHABET_UNMOD,
         dropout_rate=0.2,
-        regressor_layer_size=512,
         num_heads=8,
         ff_dim=32,
         transformer_dropout=0.1,
