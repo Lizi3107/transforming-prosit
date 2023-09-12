@@ -38,7 +38,6 @@ class PrositTransformerV2(tf.keras.Model):
         self.pos_embedding = PositionalEmbedding(
             self.embeddings_count, embedding_output_dim
         )
-
         self.meta_encoder = MetaEncoder(
             embedding_output_dim * dense_dim_factor, dropout_rate
         )
@@ -50,11 +49,11 @@ class PrositTransformerV2(tf.keras.Model):
             num_transformers=num_transformers,
         )
 
-        self.flatten_1 = tf.keras.layers.Flatten()
+        self.flatten = tf.keras.layers.Flatten()
         self.dense_1 = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
         self.mul = tf.keras.layers.Multiply()
-        self.flatten_2 = tf.keras.layers.Flatten()
-        self.regressor_td = RegressorV2(len_fion * self.max_ion)
+        self.leaky_relu = tf.keras.layers.LeakyReLU()
+        self.regressor = RegressorV2(len_fion * self.max_ion)
 
     def summary(self):
         in_sequence = tf.keras.layers.Input(shape=(30,))
@@ -81,9 +80,10 @@ class PrositTransformerV2(tf.keras.Model):
         x = self.string_lookup(peptides_in)
         x = self.pos_embedding(x)
         x = self.transformer_encoder(x)
-        x = self.flatten_1(x)
+        x = self.flatten(x)
         x = self.dense_1(x)
+        x = self.leaky_relu(x)
         x = self.mul([x, encoded_meta])
-        x = self.flatten_2(x)
-        x = self.regressor_td(x)
+        x = self.leaky_relu(x)
+        x = self.regressor(x)
         return x
