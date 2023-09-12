@@ -1,4 +1,4 @@
-from prosit_t.models import PrositTransformerV3
+from prosit_t.models import PrositTransformerAttention
 import tensorflow as tf
 from dlomix.losses import masked_spectral_distance
 from dlomix.constants import ALPHABET_UNMOD
@@ -29,13 +29,14 @@ DEFAULT_CONFIG = {
         "min_delta": 0.0001,
     },
     "epochs": 500,
+    "reduce_lr": {"factor": 0.8, "patience": 4},
     "num_transformers": 3,
     "dense_dim_factor": 4,
 }
 
 
 def get_model(config):
-    model = PrositTransformerV3(**config)
+    model = PrositTransformerAttention(**config)
     if "cyclic_lr" in config:
         optimizer = "adam"
     else:

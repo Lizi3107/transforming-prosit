@@ -9,7 +9,7 @@ from prosit_t.layers import (
 )
 
 
-class PrositTransformerV2(tf.keras.Model):
+class PrositTransformerAttention(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -24,7 +24,7 @@ class PrositTransformerV2(tf.keras.Model):
         dense_dim_factor=4,
         **kwargs,
     ):
-        super(PrositTransformerV2, self).__init__()
+        super(PrositTransformerAttention, self).__init__()
 
         # tie the count of embeddings to the size of the vocabulary (count of aa)
         self.embeddings_count = len(vocab_dict) + 2
@@ -41,6 +41,7 @@ class PrositTransformerV2(tf.keras.Model):
         self.meta_encoder = MetaEncoder(
             embedding_output_dim * dense_dim_factor, dropout_rate
         )
+
         self.transformer_encoder = TransformerEncoder(
             embedding_output_dim,
             num_heads,
@@ -50,9 +51,8 @@ class PrositTransformerV2(tf.keras.Model):
         )
 
         self.flatten = tf.keras.layers.Flatten()
-        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
-        self.mul = tf.keras.layers.Multiply()
-        self.leaky_relu = tf.keras.layers.LeakyReLU()
+        self.dense = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
+        self.att = tf.keras.layers.Attention()
         self.regressor = RegressorV2(len_fion * self.max_ion)
 
     def summary(self):
@@ -81,9 +81,8 @@ class PrositTransformerV2(tf.keras.Model):
         x = self.pos_embedding(x)
         x = self.transformer_encoder(x)
         x = self.flatten(x)
-        x = self.dense_1(x)
-        x = self.leaky_relu(x)
-        x = self.mul([x, encoded_meta])
-        x = self.leaky_relu(x)
+        x = self.dense(x)
+        x = self.att([encoded_meta, x])
+        x = self.flatten(x)
         x = self.regressor(x)
         return x

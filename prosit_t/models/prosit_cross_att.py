@@ -6,10 +6,11 @@ from prosit_t.layers import (
     RegressorV2,
     PositionalEmbedding,
     TransformerEncoder,
+    CrossAttention,
 )
 
 
-class PrositTransformerV2(tf.keras.Model):
+class PrositCrossAtt(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -24,7 +25,7 @@ class PrositTransformerV2(tf.keras.Model):
         dense_dim_factor=4,
         **kwargs,
     ):
-        super(PrositTransformerV2, self).__init__()
+        super(PrositCrossAtt, self).__init__()
 
         # tie the count of embeddings to the size of the vocabulary (count of aa)
         self.embeddings_count = len(vocab_dict) + 2
@@ -41,6 +42,10 @@ class PrositTransformerV2(tf.keras.Model):
         self.meta_encoder = MetaEncoder(
             embedding_output_dim * dense_dim_factor, dropout_rate
         )
+        self.reshape = tf.keras.layers.Reshape(
+            [1, embedding_output_dim * dense_dim_factor]
+        )
+
         self.transformer_encoder = TransformerEncoder(
             embedding_output_dim,
             num_heads,
@@ -49,10 +54,13 @@ class PrositTransformerV2(tf.keras.Model):
             num_transformers=num_transformers,
         )
 
+        self.cross_att = CrossAttention(
+            num_heads=num_heads,
+            key_dim=embedding_output_dim * dense_dim_factor,
+            dropout=0,
+        )
+
         self.flatten = tf.keras.layers.Flatten()
-        self.dense_1 = tf.keras.layers.Dense(embedding_output_dim * dense_dim_factor)
-        self.mul = tf.keras.layers.Multiply()
-        self.leaky_relu = tf.keras.layers.LeakyReLU()
         self.regressor = RegressorV2(len_fion * self.max_ion)
 
     def summary(self):
@@ -77,13 +85,11 @@ class PrositTransformerV2(tf.keras.Model):
         precursor_charge_in = inputs["precursor_charge"]
 
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
+        encoded_meta = self.reshape(encoded_meta)
         x = self.string_lookup(peptides_in)
         x = self.pos_embedding(x)
         x = self.transformer_encoder(x)
+        x = self.cross_att(x=encoded_meta, context=x)
         x = self.flatten(x)
-        x = self.dense_1(x)
-        x = self.leaky_relu(x)
-        x = self.mul([x, encoded_meta])
-        x = self.leaky_relu(x)
         x = self.regressor(x)
         return x
