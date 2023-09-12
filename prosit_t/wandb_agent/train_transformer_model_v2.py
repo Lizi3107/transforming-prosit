@@ -3,6 +3,7 @@ import tensorflow as tf
 from dlomix.losses import masked_spectral_distance
 from dlomix.constants import ALPHABET_UNMOD
 from prosit_t.wandb_agent.train_utils import train
+import os
 
 DEFAULT_CONFIG = {
     "learning_rate": 0.0001,
@@ -24,7 +25,7 @@ DEFAULT_CONFIG = {
         "patience": 8,
         "min_delta": 0.0001,
     },
-    "reduce_lr": {"factor": 0.5, "patience": 4},
+    "reduce_lr": {"factor": 0.8, "patience": 4},
     "epochs": 500,
     "num_transformers": 6,
     "dense_dim_factor": 4,
@@ -46,7 +47,7 @@ def get_model(config):
 
 
 def main():
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     physical_devices = tf.config.list_physical_devices("GPU")
     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
