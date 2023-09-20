@@ -28,7 +28,7 @@ DEFAULT_CONFIG = {
         "patience": 8,
         "min_delta": 0.0001,
     },
-    "epochs": 500,
+    "epochs": 200,
     "reduce_lr": {"factor": 0.8, "patience": 4},
     "num_transformers": 3,
     "dense_dim_factor": 4,
@@ -51,8 +51,8 @@ def get_model(config):
 
 def main():
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    # physical_devices = tf.config.list_physical_devices("GPU")
-    # tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+    physical_devices = tf.config.list_physical_devices("GPU")
+    tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
 
 
