@@ -89,7 +89,7 @@ class PrositCrossAtt(tf.keras.Model):
         x = self.string_lookup(peptides_in)
         x = self.pos_embedding(x)
         x = self.transformer_encoder(x)
-        x = self.cross_att(x=encoded_meta, context=x)
+        x = self.cross_att(x=x, context=encoded_meta)
         x = self.flatten(x)
         x = self.regressor(x)
         return x

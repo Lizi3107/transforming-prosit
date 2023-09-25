@@ -32,7 +32,7 @@ DEFAULT_CONFIG = {
         "mode": "triangular",
         "step_size": 4,
     },
-    "epochs": 500,
+    "epochs": 200,
     # "weight_decay": 0.001,
 }
 
