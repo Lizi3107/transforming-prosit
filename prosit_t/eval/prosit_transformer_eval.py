@@ -3,6 +3,8 @@ from dlomix.losses import masked_spectral_distance
 import plotly.graph_objects as go
 import numpy as np
 from plotly.subplots import make_subplots
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 def dataset_to_list(tf_dataset):
@@ -47,8 +49,17 @@ def process_df(df):
     df["collision_energy"] = df["collision_energy"].apply(lambda x: x.squeeze())
     df["collision_energy_range"] = pd.cut(
         df["collision_energy"],
-        bins=[0.2, 0.25, 0.3, 0.35, 0.4],
-        labels=["< 0.25", "0.25-0.3", "0.3-0.35", "> 0.35"],
+        bins=[0.2, 0.23, 0.25, 0.28, 0.3, 0.33, 0.35, 0.38, 0.4],
+        labels=[
+            "< 0.23",
+            "0.23-0.25",
+            "0.25-0.28",
+            "0.28-0.3",
+            "0.3-0.33",
+            "0.33-0.35",
+            "0.35-0.38",
+            "> 0.38",
+        ],
     )
     return df
 
@@ -124,3 +135,32 @@ def histogram_per_feature_val(
         showlegend=False,
     )
     return fig
+
+
+def kde_per_model(
+    df,
+    loss_columns,
+    colors=["#4028ff", "#f8a500"],
+    title="Plot title",
+    xaxis_title="x-axis title",
+    yaxis_title="y-axis title",
+    alpha=0.7,
+    fill=True,
+    linewidth=0,
+):
+    for idx, col in enumerate(loss_columns):
+        name = col.split("_")[0]
+        sns.kdeplot(
+            data=df[col],
+            label=name,
+            fill=fill,
+            color=colors[idx],
+            linewidth=linewidth,
+            alpha=alpha,
+        )
+
+    plt.xlabel(xaxis_title)
+    plt.ylabel(yaxis_title)
+    plt.title(title)
+
+    plt.legend()
