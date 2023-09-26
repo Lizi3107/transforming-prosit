@@ -22,7 +22,7 @@ def compare_spectra(y_true, y_pred, labels, barmode="group"):
 
 
 def compare_multiple_spectra(
-    y_true, y_preds, pred_labels, barmode="group", bar_width=0.3
+    y_true, y_preds, pred_labels, losses, barmode="group", bar_width=0.3
 ):
     mask = np.not_equal(y_true, -1).astype(np.float64)
     masked_y_preds = []
@@ -44,7 +44,10 @@ def compare_multiple_spectra(
     for idx, e in enumerate(masked_y_preds):
         bars.append(
             go.Bar(
-                x=np.arange(len(y_true)), y=e, name=pred_labels[idx], width=bar_width
+                x=np.arange(len(y_true)),
+                y=e,
+                name=f"{pred_labels[idx]}, SD - {losses[idx]:.3f}",
+                width=bar_width,
             ),
         )
     fig = {
