@@ -9,7 +9,7 @@ from prosit_t.layers import (
 )
 
 
-class TestModelDrop(tf.keras.Model):
+class ProstTransformerDynamicLen(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -23,7 +23,7 @@ class TestModelDrop(tf.keras.Model):
         dense_dim_factor=4,
         **kwargs,
     ):
-        super(TestModelDrop, self).__init__()
+        super(ProstTransformerDynamicLen, self).__init__()
 
         self.embeddings_count = len(vocab_dict) + 2
         self.embed = tf.keras.layers.Embedding(
@@ -64,7 +64,6 @@ class TestModelDrop(tf.keras.Model):
         peptides_in = inputs["sequence"]
         collision_energy_in = inputs["collision_energy"]
         precursor_charge_in = inputs["precursor_charge"]
-
         encoded_meta = self.meta_encoder([collision_energy_in, precursor_charge_in])
         encoded_meta = self.reshape(encoded_meta)
         x = self.string_lookup(peptides_in)
@@ -77,7 +76,7 @@ class TestModelDrop(tf.keras.Model):
         return x
 
 
-class TestModelPooling(tf.keras.Model):
+class ProstTransformerDynamicLenPooling(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -91,7 +90,7 @@ class TestModelPooling(tf.keras.Model):
         dense_dim_factor=4,
         **kwargs,
     ):
-        super(TestModelPooling, self).__init__()
+        super(ProstTransformerDynamicLenPooling, self).__init__()
 
         self.embeddings_count = len(vocab_dict) + 2
         self.embed = tf.keras.layers.Embedding(
