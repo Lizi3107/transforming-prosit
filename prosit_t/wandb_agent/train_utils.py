@@ -9,6 +9,8 @@ from wandb.keras import WandbCallback
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LearningRateScheduler
 from prosit_t.optimizers.cyclic_lr import CyclicLR
 import tensorflow as tf
+from prosit_t.data.parquet_to_tfdataset import get_tfdatasets
+from dlomix.losses import masked_spectral_distance
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
@@ -85,6 +87,11 @@ def get_proteometools_data(config):
     return int_data_train.train_data, int_data_val.train_data
 
 
+def get_proteometools_data_variable_len(config):
+    train_data, val_data = get_tfdatasets(batch_size=config["batch_size"])
+    return train_data, val_data
+
+
 def scheduler(epoch, lr):
     if epoch < 10:
         return lr
@@ -126,6 +133,46 @@ def get_callbacks(config):
     return callbacks
 
 
+def get_model(config):
+    model_class = config["model_class"]
+    model = model_class(**config)
+    if "cyclic_lr" in config:
+        optimizer = "adam"
+    else:
+        optimizer = tf.keras.optimizers.Adam(learning_rate=config["learning_rate"])
+    model.compile(
+        optimizer=optimizer,
+        loss=masked_spectral_distance,
+    )
+
+    return model
+
+
+def train_v2(config, get_model):
+    with wandb.init(config=config, project=PROJECT_NAME) as _:
+        config = wandb.config
+        config = dict(wandb.config)
+
+        if config["dataset"] == "example":
+            train_dataset, val_dataset = get_example_data(config)
+        elif config["dataset"] == "proteometools":
+            assert "data_source" in config
+            assert "train" in config["data_source"]
+            assert "val" in config["data_source"]
+            train_dataset, val_dataset = get_proteometools_data(config)
+        elif config["dataset"] == "proteometools_dynamic_len":
+            train_dataset, val_dataset = get_proteometools_data_variable_len(config)
+        model = get_model(config)
+        callbacks = get_callbacks(config)
+        model.fit(
+            train_dataset,
+            validation_data=val_dataset,
+            epochs=config["epochs"],
+            callbacks=callbacks,
+        )
+        model.summary()
+
+
 def train(config, get_model):
     with wandb.init(config=config, project=PROJECT_NAME) as _:
         config = wandb.config
@@ -138,6 +185,8 @@ def train(config, get_model):
             assert "train" in config["data_source"]
             assert "val" in config["data_source"]
             train_dataset, val_dataset = get_proteometools_data(config)
+        elif config["dataset"] == "proteometools_dynamic_len":
+            train_dataset, val_dataset = get_proteometools_data_variable_len(config)
         model = get_model(config)
         callbacks = get_callbacks(config)
         model.fit(
