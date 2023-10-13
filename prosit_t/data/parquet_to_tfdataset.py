@@ -5,14 +5,10 @@ import pandas as pd
 pd.set_option("mode.chained_assignment", None)
 
 DATA_CONFIG = {
-    "dataset": "proteometools",
     "data_source": {
         "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
         "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
-    },
-    "fragmentation": "HCD",
-    "batch_size": 1,
-    "seq_length": 30,
+    }
 }
 
 X_COLUMNS = ["sequence", "precursor_charge", "collision_energy"]
@@ -21,6 +17,12 @@ MOD_ENCODING = ["[UNIMOD:35]", "[UNIMOD:4]"]
 
 def concatenate_columns(row):
     return row.tolist()
+
+
+def int_to_onehot(charge):
+    onehot = np.zeros(6)
+    onehot[charge - 1] = 1
+    return onehot
 
 
 def truncate_target(row):
@@ -51,9 +53,7 @@ def create_input_df(parquet_df):
         .str.replace(MOD_ENCODING[0], "", regex=False)
         .str.replace(MOD_ENCODING[1], "", regex=False)
     )
-    df["precursor_charge"] = pd.get_dummies(
-        parquet_df["precursor_charge"], dtype=float
-    ).apply(lambda row: concatenate_columns(row), axis=1)
+    df["precursor_charge"] = parquet_df["precursor_charge"].apply(int_to_onehot)
 
     df["collision_energy"] = parquet_df["collision_energy_aligned_normed"]
     df["intensities_raw"] = parquet_df["intensities_raw"]
