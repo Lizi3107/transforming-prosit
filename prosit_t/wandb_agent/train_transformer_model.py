@@ -17,7 +17,7 @@ DEFAULT_CONFIG = {
     "dropout_rate": 0,
     "ff_dim": 32,
     "num_heads": 16,
-    "transformer_dropout": 0,
+    "transformer_dropout": 0.1,
     "dataset": "proteometools",
     "data_source": {
         "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
@@ -25,11 +25,11 @@ DEFAULT_CONFIG = {
     },
     "fragmentation": "HCD",
     "early_stopping": {
-        "patience": 30,
+        "patience": 8,
         "min_delta": 0.0001,
     },
-    "epochs": 500,
-    "num_transformers": 2,
+    "epochs": 200,
+    "num_transformers": 6,
 }
 
 
