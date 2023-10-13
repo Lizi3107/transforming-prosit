@@ -11,6 +11,7 @@ from prosit_t.optimizers.cyclic_lr import CyclicLR
 import tensorflow as tf
 from prosit_t.data.parquet_to_tfdataset import get_tfdatasets
 from dlomix.losses import masked_spectral_distance
+import importlib
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
@@ -134,7 +135,8 @@ def get_callbacks(config):
 
 
 def get_model(config):
-    model_class = config["model_class"]
+    package = importlib.import_module(config["package_name"])
+    model_class = getattr(package, config["model_class"])
     model = model_class(**config)
     if "cyclic_lr" in config:
         optimizer = "adam"
@@ -148,7 +150,7 @@ def get_model(config):
     return model
 
 
-def train_v2(config, get_model):
+def train_generic(config):
     with wandb.init(config=config, project=PROJECT_NAME) as _:
         config = wandb.config
         config = dict(wandb.config)
@@ -163,6 +165,7 @@ def train_v2(config, get_model):
         elif config["dataset"] == "proteometools_dynamic_len":
             train_dataset, val_dataset = get_proteometools_data_variable_len(config)
         model = get_model(config)
+        print(model)
         callbacks = get_callbacks(config)
         model.fit(
             train_dataset,
