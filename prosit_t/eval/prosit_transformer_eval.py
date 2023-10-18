@@ -49,21 +49,21 @@ def process_df(df):
     df["collision_energy"] = df["collision_energy"].apply(lambda x: x.squeeze())
     df["collision_energy_range"] = pd.cut(
         df["collision_energy"],
-        bins=[0.2, 0.23, 0.25, 0.28, 0.3, 0.33, 0.35, 0.38],
-        labels=[
-            "< 0.23",
-            "0.23-0.25",
-            "0.25-0.28",
-            "0.28-0.3",
-            "0.3-0.33",
-            "0.33-0.35",
-            "> 0.35",
-        ],
+        bins=18,
+        # labels=[
+        #     "< 0.23",
+        #     "0.23-0.25",
+        #     "0.25-0.27",
+        #     "0.27-0.3",
+        #     "0.3-0.33",
+        #     "0.33-0.35",
+        #     "> 0.35",
+        # ],
     )
     return df
 
 
-def violin_plot_per_feature_val(
+def violin_plot_comparison_per_feature_val(
     df,
     loss_columns,
     feature_column,
@@ -91,16 +91,70 @@ def violin_plot_per_feature_val(
             )
         )
     num_samples = df[feature_column].value_counts().sort_index()
+    for group, count in num_samples.items():
+        if count == 0:
+            print("empty")
+        else:
+            annotation = {
+                "x": group,
+                "y": max(df[loss_col]) - 0.15,
+                "text": f"<b>n={count}</b>",
+                "showarrow": False,
+                "xref": "x",
+                "yref": "y",
+                "xshift": -25,
+                "yshift": 0,
+                "textangle": -90,
+            }
+
+        fig.add_annotation(annotation)
+    fig.update_traces(meanline_visible=True)
+    fig.update_layout(
+        violingap=0,
+        violinmode=violinmode,
+        title=title,
+        xaxis_title=xaxis_title,
+        yaxis_title=yaxis_title,
+        **kwargs,
+    )
+    return fig
+
+
+def violin_plot_per_feature_val(
+    df,
+    loss_column,
+    feature_column,
+    line_color="blue",
+    violinmode="overlay",
+    title="My Plotly Figure Title",
+    xaxis_title="x-axis title",
+    yaxis_title="y-axis title",
+    **kwargs,
+):
+    fig = go.Figure()
+    name = loss_column.split("_")[0]
+    fig.add_trace(
+        go.Violin(
+            x=df[feature_column],
+            y=df[loss_column],
+            legendgroup=f"<b>{name}</b>",
+            scalegroup=f"<b>{name}</b>",
+            name=f"<b>{name}</b>",
+            line_color=line_color,
+            points=False,
+        )
+    )
+    num_samples = df[feature_column].value_counts().sort_index()
 
     for group, count in num_samples.items():
         annotation = {
             "x": group,
-            "y": max(df[loss_col]) - 0.15,
+            "y": max(df[loss_column]) - 0.15,
             "text": f"<b>n={count}</b>",
             "showarrow": False,
             "xref": "x",
             "yref": "y",
-            "xshift": -25,
+            "xshift": -15,
             "yshift": 0,
             "textangle": -90,
         }
