@@ -1,7 +1,9 @@
-from prosit_t.models.variable_seq_length_models import ProstTransformerDynamicLen
+from prosit_t.models.variable_seq_length_models import (
+    ProstTransformerDynamicLen,
+)
 import tensorflow as tf
 from dlomix.losses import masked_spectral_distance
-from dlomix.constants import ALPHABET_UNMOD
+from prosit_t.constants import ALPHABET_UNMOD
 from prosit_t.wandb_agent.train_utils import train
 import os
 
