@@ -9,6 +9,7 @@ from prosit_t.models.prosit_cross_att import PrositCrossAtt
 from prosit_t.models.prosit_transformer_concat import PrositTransformerConcat
 from prosit_t.models.prosit_transformer_attention import PrositTransformerAttention
 from prosit_t.models.variable_seq_length_models import (
-    ProstTransformerDynamicLen,
+    ProstTransformerDynamicLenDropFirst,
+    ProstTransformerDynamicLenDropLast,
     ProstTransformerDynamicLenPooling,
 )
