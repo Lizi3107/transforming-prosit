@@ -10,9 +10,11 @@ def main():
 
     parser.add_argument("config_file", type=str, help="Config yaml path")
     parser.add_argument("cuda_idx", type=str, help="Index for the visible gpu")
+    parser.add_argument("project_name", type=str, help="Wandb project name")
     args = parser.parse_args()
     config_file = args.config_file
     cuda_idx = args.cuda_idx
+    project_name = args.project_name
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_idx
     physical_devices = tf.config.list_physical_devices("GPU")
@@ -24,7 +26,7 @@ def main():
         except yaml.YAMLError as e:
             print("Error parsing YAML:", e)
 
-    train_generic(config_dict)
+    train_generic(config_dict, project_name)
 
 
 if __name__ == "__main__":
