@@ -12,7 +12,7 @@ DATA_CONFIG = {
 }
 
 X_COLUMNS = ["sequence", "precursor_charge", "collision_energy"]
-MOD_ENCODING = ["[UNIMOD:35]", "[UNIMOD:4]"]
+MOD_ENCODING = ["M[UNIMOD:35]", "C[UNIMOD:4]"]
 
 
 def concatenate_columns(row):
@@ -46,13 +46,20 @@ def merge_tuples(item1, item2):
     )
 
 
-def create_input_df(parquet_df):
+def create_input_df(parquet_df, encode_ox=True):
     df = pd.DataFrame(columns=X_COLUMNS)
-    df["sequence"] = (
-        parquet_df["modified_sequence"]
-        .str.replace(MOD_ENCODING[0], "", regex=False)
-        .str.replace(MOD_ENCODING[1], "", regex=False)
-    )
+    if encode_ox:
+        df["sequence"] = (
+            parquet_df["modified_sequence"]
+            .str.replace(MOD_ENCODING[0], "m", regex=False)
+            .str.replace(MOD_ENCODING[1], "C", regex=False)
+        )
+    else:
+        df["sequence"] = (
+            parquet_df["modified_sequence"]
+            .str.replace(MOD_ENCODING[0], "M", regex=False)
+            .str.replace(MOD_ENCODING[1], "C", regex=False)
+        )
     df["precursor_charge"] = parquet_df["precursor_charge"].apply(int_to_onehot)
 
     df["collision_energy"] = parquet_df["collision_energy_aligned_normed"]
@@ -106,7 +113,10 @@ def ragged_to_tfdataset(
             )
         )
         .map(ragged_to_dense)
-        .padded_batch(batch_size)
+        .padded_batch(
+            batch_size,
+            padding_values=(tf.constant(""), tf.constant(-1, dtype=tf.float64)),
+        )
         .unbatch()
     )
 
@@ -123,12 +133,12 @@ def ragged_to_tfdataset(
     return dataset
 
 
-def get_tfdatasets(batch_size):
+def get_tfdatasets(batch_size, encode_ox=True):
     train_df = pd.read_parquet(DATA_CONFIG["data_source"]["train"])
     val_df = pd.read_parquet(DATA_CONFIG["data_source"]["val"])
 
-    train_in_df = create_input_df(train_df)
-    val_in_df = create_input_df(val_df)
+    train_in_df = create_input_df(train_df, encode_ox)
+    val_in_df = create_input_df(val_df, encode_ox)
 
     train_in_df = process_input_df_columns(train_in_df)
     val_in_df = process_input_df_columns(val_in_df)
@@ -137,5 +147,5 @@ def get_tfdatasets(batch_size):
     val_ragged = df_to_ragged_tensors(val_in_df)
 
     train_dataset = ragged_to_tfdataset(*train_ragged)
-    val_dataset = ragged_to_tfdataset(*val_ragged)
+    val_dataset = ragged_to_tfdataset(*val_ragged, batch_size=batch_size)
     return train_dataset, val_dataset
