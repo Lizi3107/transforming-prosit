@@ -150,8 +150,8 @@ def get_model(config):
     return model
 
 
-def train_generic(config):
-    with wandb.init(config=config, project=PROJECT_NAME) as _:
+def train_generic(config, project_name):
+    with wandb.init(config=config, project=project_name) as _:
         config = wandb.config
         config = dict(wandb.config)
 
@@ -165,7 +165,6 @@ def train_generic(config):
         elif config["dataset"] == "proteometools_dynamic_len":
             train_dataset, val_dataset = get_proteometools_data_variable_len(config)
         model = get_model(config)
-        print(model)
         callbacks = get_callbacks(config)
         model.fit(
             train_dataset,

@@ -25,6 +25,8 @@ def main():
             config_dict = yaml.safe_load(yaml_file)
         except yaml.YAMLError as e:
             print("Error parsing YAML:", e)
+    if config_dict["dataset"] == "proteometools_dynamic_len":
+        tf.config.run_functions_eagerly(True)
 
     train_generic(config_dict, project_name)
 
