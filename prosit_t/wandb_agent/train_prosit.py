@@ -17,8 +17,8 @@ DEFAULT_CONFIG = {
     "regressor_layer_size": 512,
     "dataset": "proteometools",
     "data_source": {
-        "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
-        "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
+        "train": "/cmnfs/proj/prosit/Transformer/all_unmod_train.parquet",
+        "val": "/cmnfs/proj/prosit/Transformer/all_unmod_test.parquet",
     },
     "fragmentation": "HCD",
     "early_stopping": {
@@ -57,7 +57,7 @@ def get_model(config):
 
 
 def main():
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     physical_devices = tf.config.list_physical_devices("GPU")
     tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
     train(DEFAULT_CONFIG, get_model)
