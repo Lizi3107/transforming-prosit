@@ -15,10 +15,6 @@ X_COLUMNS = ["sequence", "precursor_charge", "collision_energy"]
 MOD_ENCODING = ["M[UNIMOD:35]", "C[UNIMOD:4]"]
 
 
-def concatenate_columns(row):
-    return row.tolist()
-
-
 def int_to_onehot(charge):
     onehot = np.zeros(6)
     onehot[charge - 1] = 1
