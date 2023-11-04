@@ -84,18 +84,19 @@ def violin_plot_comparison_per_feature_val(
         )
     num_samples = df[feature_column].value_counts().sort_index()
     for group, count in num_samples.items():
-        annotation = {
-            "x": group,
-            "y": max(df[loss_col]) - 0.15,
-            "text": f"<b>n={count}</b>",
-            "showarrow": False,
-            "xref": "x",
-            "yref": "y",
-            "xshift": -25,
-            "yshift": 0,
-            "textangle": -90,
-        }
-        fig.add_annotation(annotation)
+        if count != 0:
+            annotation = {
+                "x": group,
+                "y": max(df[loss_col]) - 0.15,
+                "text": f"<b>n={count}</b>",
+                "showarrow": False,
+                "xref": "x",
+                "yref": "y",
+                "xshift": -25,
+                "yshift": 0,
+                "textangle": -90,
+            }
+            fig.add_annotation(annotation)
     fig.update_traces(meanline_visible=True)
     fig.update_layout(
         violingap=0,
