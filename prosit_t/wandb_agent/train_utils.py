@@ -12,6 +12,9 @@ import tensorflow as tf
 from prosit_t.data.parquet_to_tfdataset import get_tfdatasets
 from dlomix.losses import masked_spectral_distance
 import importlib
+from prosit_t.data.parquet_to_tfdataset_padded_filtered import (
+    get_tfdatasets_padded_filtered,
+)
 
 DATA_DIR = "/cmnfs/proj/prosit/Transformer/"
 META_DATA_DIR = "/cmnfs/proj/prosit/Transformer/Final_Meta_Data/"
@@ -164,6 +167,8 @@ def train_generic(config, project_name):
             train_dataset, val_dataset = get_proteometools_data(config)
         elif config["dataset"] == "proteometools_dynamic_len":
             train_dataset, val_dataset = get_proteometools_data_variable_len(config)
+        elif config["dataset"] == "proteometools_filtered_ftms":
+            train_dataset, val_dataset = get_tfdatasets_padded_filtered(config)
         model = get_model(config)
         callbacks = get_callbacks(config)
         model.fit(
@@ -189,6 +194,8 @@ def train(config, get_model):
             train_dataset, val_dataset = get_proteometools_data(config)
         elif config["dataset"] == "proteometools_dynamic_len":
             train_dataset, val_dataset = get_proteometools_data_variable_len(config)
+        elif config["dataset"] == "proteometools_filtered_ftms":
+            train_dataset, val_dataset = get_tfdatasets_padded_filtered(config)
         model = get_model(config)
         callbacks = get_callbacks(config)
         model.fit(
