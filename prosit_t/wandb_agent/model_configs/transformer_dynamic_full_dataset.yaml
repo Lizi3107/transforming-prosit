@@ -2,8 +2,7 @@ batch_size: 1024
 data_source:
   train: /cmnfs/proj/prosit/Transformer/all_unmod_train.parquet
   val: /cmnfs/proj/prosit/Transformer/all_unmod_test.parquet
-dataset: proteometools_filtered_ftms
-dense_dim_factor: 4
+dataset: proteometools_dynamic_len
 dropout_rate: 0
 early_stopping:
   min_delta: 0.0001
@@ -11,16 +10,17 @@ early_stopping:
 embedding_output_dim: 64
 epochs: 200
 ff_dim: 32
-learning_rate: 0.00005
+fragmentation: HCD
+learning_rate: 0.0001
 len_fion: 6
 package_name: prosit_t.models
-model_class: PrositTransformerV2
+model_class: ProstTransformerDynamicLenDropLast
+meta_embedding_dim: 256
 num_heads: 16
 num_transformers: 6
 reduce_lr:
   factor: 0.8
   patience: 4
-seq_length: 30
 transformer_dropout: 0.1
 vocab_dict:
   A: 1
