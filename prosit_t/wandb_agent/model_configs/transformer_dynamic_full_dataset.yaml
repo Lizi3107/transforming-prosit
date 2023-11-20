@@ -1,0 +1,46 @@
+batch_size: 1024
+data_source:
+  train: /cmnfs/proj/prosit/Transformer/all_unmod_train.parquet
+  val: /cmnfs/proj/prosit/Transformer/all_unmod_test.parquet
+dataset: proteometools_dynamic_len
+dropout_rate: 0
+early_stopping:
+  min_delta: 0.0001
+  patience: 8
+embedding_output_dim: 64
+epochs: 200
+ff_dim: 32
+fragmentation: HCD
+learning_rate: 0.0001
+len_fion: 6
+package_name: prosit_t.models
+model_class: ProstTransformerDynamicLenDropLast
+meta_embedding_dim: 256
+num_heads: 16
+num_transformers: 6
+reduce_lr:
+  factor: 0.8
+  patience: 4
+transformer_dropout: 0.1
+vocab_dict:
+  A: 1
+  C: 2
+  D: 3
+  E: 4
+  F: 5
+  G: 6
+  H: 7
+  I: 8
+  K: 9
+  L: 10
+  M: 11
+  N: 12
+  P: 13
+  Q: 14
+  R: 15
+  S: 16
+  T: 17
+  V: 18
+  W: 19
+  Y: 20
+  m: 21

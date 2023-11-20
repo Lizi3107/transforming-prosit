@@ -6,17 +6,13 @@ pd.set_option("mode.chained_assignment", None)
 
 DATA_CONFIG = {
     "data_source": {
-        "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
-        "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
+        "train": "/cmnfs/proj/prosit/Transformer/all_unmod_train.parquet",
+        "val": "/cmnfs/proj/prosit/Transformer/all_unmod_test.parquet",
     }
 }
 
 X_COLUMNS = ["sequence", "precursor_charge", "collision_energy"]
 MOD_ENCODING = ["M[UNIMOD:35]", "C[UNIMOD:4]"]
-
-
-def concatenate_columns(row):
-    return row.tolist()
 
 
 def int_to_onehot(charge):
@@ -125,7 +121,7 @@ def ragged_to_tfdataset(
     ).map(ragged_to_dense)
 
     dataset = (
-        tf.data.Dataset.zip(dataset_seq_target, dataset_meta)
+        tf.data.Dataset.zip((dataset_seq_target, dataset_meta))
         .map(merge_tuples)
         .batch(batch_size)
         .prefetch(tf.data.AUTOTUNE)

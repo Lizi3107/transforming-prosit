@@ -1,6 +1,6 @@
 from dlomix.models import PrositIntensityPredictor
 from dlomix.losses import masked_spectral_distance
-from dlomix.constants import ALPHABET_UNMOD
+from prosit_t.constants import ALPHABET_UNMOD
 from prosit_t.wandb_agent.train_utils import train
 import tensorflow as tf
 import os
@@ -15,10 +15,10 @@ DEFAULT_CONFIG = {
     "vocab_dict": ALPHABET_UNMOD,
     "recurrent_layers_sizes": (256, 512),
     "regressor_layer_size": 512,
-    "dataset": "proteometools",
+    "dataset": "proteometools_filtered_ftms",
     "data_source": {
-        "train": "/cmnfs/proj/prosit/Transformer/first_pool_train.parquet",
-        "val": "/cmnfs/proj/prosit/Transformer/first_pool_test.parquet",
+        "train": "/cmnfs/proj/prosit/Transformer/all_unmod_train.parquet",
+        "val": "/cmnfs/proj/prosit/Transformer/all_unmod_test.parquet",
     },
     "fragmentation": "HCD",
     "early_stopping": {
@@ -33,7 +33,6 @@ DEFAULT_CONFIG = {
         "step_size": 4,
     },
     "epochs": 200,
-    # "weight_decay": 0.001,
 }
 
 
