@@ -9,7 +9,7 @@ from prosit_t.layers import (
 )
 
 
-class ProstTransformerDynamicLen(tf.keras.Model):
+class PrositTransformerDynamicLen(tf.keras.Model):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -23,7 +23,7 @@ class ProstTransformerDynamicLen(tf.keras.Model):
         num_transformers=2,
         **kwargs,
     ):
-        super(ProstTransformerDynamicLen, self).__init__()
+        super(PrositTransformerDynamicLen, self).__init__()
 
         self.embeddings_count = len(vocab_dict) + 2
         self.string_lookup = preprocessing.StringLookup(
@@ -55,7 +55,7 @@ class ProstTransformerDynamicLen(tf.keras.Model):
         raise NotImplementedError
 
 
-class ProstTransformerDynamicLenDropLast(ProstTransformerDynamicLen):
+class PrositTransformerDynamicLenDropLast(PrositTransformerDynamicLen):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -69,7 +69,7 @@ class ProstTransformerDynamicLenDropLast(ProstTransformerDynamicLen):
         num_transformers=2,
         **kwargs,
     ):
-        super(ProstTransformerDynamicLenDropLast, self).__init__(
+        super(PrositTransformerDynamicLenDropLast, self).__init__(
             embedding_output_dim,
             meta_embedding_dim,
             vocab_dict,
@@ -102,7 +102,7 @@ class ProstTransformerDynamicLenDropLast(ProstTransformerDynamicLen):
         return x
 
 
-class ProstTransformerDynamicLenDropFirst(ProstTransformerDynamicLen):
+class PrositTransformerDynamicLenDropFirst(PrositTransformerDynamicLen):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -116,7 +116,7 @@ class ProstTransformerDynamicLenDropFirst(ProstTransformerDynamicLen):
         num_transformers=2,
         **kwargs,
     ):
-        super(ProstTransformerDynamicLenDropFirst, self).__init__(
+        super(PrositTransformerDynamicLenDropFirst, self).__init__(
             embedding_output_dim,
             meta_embedding_dim,
             vocab_dict,
@@ -149,7 +149,7 @@ class ProstTransformerDynamicLenDropFirst(ProstTransformerDynamicLen):
         return x
 
 
-class ProstTransformerDynamicLenPooling(ProstTransformerDynamicLen):
+class PrositTransformerDynamicLenPooling(PrositTransformerDynamicLen):
     def __init__(
         self,
         embedding_output_dim=16,
@@ -163,7 +163,7 @@ class ProstTransformerDynamicLenPooling(ProstTransformerDynamicLen):
         num_transformers=2,
         **kwargs,
     ):
-        super(ProstTransformerDynamicLenPooling, self).__init__(
+        super(PrositTransformerDynamicLenPooling, self).__init__(
             embedding_output_dim,
             meta_embedding_dim,
             vocab_dict,

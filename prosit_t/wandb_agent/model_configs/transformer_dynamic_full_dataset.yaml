@@ -14,10 +14,10 @@ fragmentation: HCD
 learning_rate: 0.0001
 len_fion: 6
 package_name: prosit_t.models
-model_class: ProstTransformerDynamicLenDropLast
-meta_embedding_dim: 256
+model_class: PrositTransformerDynamicLenDropLast
+meta_embedding_dim: 512
 num_heads: 16
-num_transformers: 6
+num_transformers: 8
 reduce_lr:
   factor: 0.8
   patience: 4
