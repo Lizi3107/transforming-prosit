@@ -92,7 +92,7 @@ def get_proteometools_data(config):
 
 
 def get_proteometools_data_variable_len(config):
-    train_data, val_data = get_tfdatasets(batch_size=config["batch_size"])
+    train_data, val_data = get_tfdatasets(config)
     return train_data, val_data
 
 
