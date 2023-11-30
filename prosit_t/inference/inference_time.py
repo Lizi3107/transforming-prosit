@@ -45,7 +45,7 @@ def plot_inference_time_comparison(df, baseline_name):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             height,
-            f"{time_:.2f} s",
+            f"{time_:.3f} s",
             ha="center",
             va="bottom",
         )
@@ -56,4 +56,5 @@ def plot_inference_time_comparison(df, baseline_name):
     plt.ylabel(
         f"Inference Time Relative to {baseline_name} (Percentage)", fontsize="11"
     )
+    plt.xticks(rotation=30, ha="center")
     plt.show()

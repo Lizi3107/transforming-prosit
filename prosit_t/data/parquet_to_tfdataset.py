@@ -129,9 +129,9 @@ def ragged_to_tfdataset(
     return dataset
 
 
-def get_tfdatasets(batch_size, encode_ox=True, filter_ftms=True):
-    train_df = pd.read_parquet(DATA_CONFIG["data_source"]["train"])
-    val_df = pd.read_parquet(DATA_CONFIG["data_source"]["val"])
+def get_tfdatasets(config, encode_ox=True, filter_ftms=True):
+    train_df = pd.read_parquet(config["data_source"]["train"])
+    val_df = pd.read_parquet(config["data_source"]["val"])
 
     if filter_ftms:
         train_df = train_df[train_df.mass_analyzer == "FTMS"]
@@ -146,6 +146,6 @@ def get_tfdatasets(batch_size, encode_ox=True, filter_ftms=True):
     train_ragged = df_to_ragged_tensors(train_in_df)
     val_ragged = df_to_ragged_tensors(val_in_df)
 
-    train_dataset = ragged_to_tfdataset(*train_ragged, batch_size=batch_size)
-    val_dataset = ragged_to_tfdataset(*val_ragged, batch_size=batch_size)
+    train_dataset = ragged_to_tfdataset(*train_ragged, batch_size=config["batch_size"])
+    val_dataset = ragged_to_tfdataset(*val_ragged, batch_size=config["batch_size"])
     return train_dataset, val_dataset
