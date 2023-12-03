@@ -284,8 +284,11 @@ def compare_spectra_annotated_mirror(
                 color=colors[i],
                 rotation=90,
             )
+    plt.figtext(
+        0.5, 0.15, f"{model2_name}: SA {model2_sa:.3f}", ha="center", fontsize="12"
+    )
     ax.set_title(
-        f"{model1_name}: SA {model1_sa:.3f}, \n {model2_name}: SA {model2_sa:.3f}",
+        f"{model1_name}: SA {model1_sa:.3f}",
         pad=20,
     )
     ax.yaxis.set_major_formatter(plt.FuncFormatter(custom_formatter))
