@@ -69,7 +69,7 @@ def violin_plot_comparison_per_feature_val(
 ):
     fig = go.Figure()
     for idx, loss_col in enumerate(loss_columns):
-        name = loss_col.split("_")[0]
+        name = (" ").join(loss_col.split("_")[:-1])
         fig.add_trace(
             go.Violin(
                 x=df[feature_column],
@@ -87,14 +87,17 @@ def violin_plot_comparison_per_feature_val(
         if count != 0:
             annotation = {
                 "x": group,
-                "y": max(df[loss_col]) - 0.15,
+                "y": max(df[loss_col]) - 0.25,
                 "text": f"<b>n={count}</b>",
                 "showarrow": False,
                 "xref": "x",
                 "yref": "y",
-                "xshift": -25,
+                "xshift": 15,
                 "yshift": 0,
                 "textangle": -90,
+                # "font": {
+                #     "size": 18
+                # }
             }
             fig.add_annotation(annotation)
     fig.update_traces(meanline_visible=True)
@@ -203,24 +206,28 @@ def histogram_per_feature_val(
 def kde_per_model(
     df,
     loss_columns,
-    colors=["#4028ff", "#f8a500"],
+    colors,
     title="Plot title",
     xaxis_title="x-axis title",
     yaxis_title="y-axis title",
     alpha=0.7,
     fill=True,
     linewidth=0,
+    **kwargs,
 ):
     for idx, col in enumerate(loss_columns):
-        name = col.split("_")[0]
-        sns.kdeplot(
+        name = " ".join(col.split("_")[:-1])
+        ax = sns.kdeplot(
             data=df[col],
             label=name,
             fill=fill,
             color=colors[idx],
             linewidth=linewidth,
             alpha=alpha,
+            **kwargs,
         )
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
 
     plt.xlabel(xaxis_title)
     plt.ylabel(yaxis_title)
