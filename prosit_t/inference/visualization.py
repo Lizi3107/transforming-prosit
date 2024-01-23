@@ -161,6 +161,7 @@ def compare_spectra_annotated(y_true, y_pred, loss, model_name):
 
 
 def compare_spectra_annotated_mirror(
+    sample_x,
     y_true,
     model1_y_pred,
     model2_y_pred,
@@ -284,12 +285,19 @@ def compare_spectra_annotated_mirror(
                 color=colors[i],
                 rotation=90,
             )
+    sequence_title =''.join(sample_x["sequence"].numpy().astype(str))
+    charge_title = f"{(np.argmax(sample_x['precursor_charge']) + 1)}+"
+    nce_title = round(float(sample_x["collision_energy"][0]),2)
     plt.figtext(
-        0.5, 0.15, f"{model2_name}: SA {model2_sa:.3f}", ha="center", fontsize="12"
+        0.1, 0.95, f"{sequence_title} {charge_title}, NCE: {nce_title}", ha="left", fontsize="12"
+    )
+    plt.figtext(
+        0.5, 0.15, f"{model2_name}: SA {model2_sa:.3f}", ha="center", fontsize="11"
     )
     ax.set_title(
         f"{model1_name}: SA {model1_sa:.3f}",
         pad=20,
+        fontsize="11"
     )
     ax.yaxis.set_major_formatter(plt.FuncFormatter(custom_formatter))
     ax.spines["top"].set_visible(False)
