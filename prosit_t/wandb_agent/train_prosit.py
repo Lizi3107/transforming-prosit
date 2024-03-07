@@ -41,6 +41,7 @@ def get_model(config):
         seq_length=config["seq_length"],
         embedding_output_dim=config["embedding_output_dim"],
         recurrent_layers_sizes=config["recurrent_layers_sizes"],
+        vocab_dict=config["vocab_dict"],
     )
     if "cyclic_lr" in config:
         optimizer = "adam"

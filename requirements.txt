@@ -1,0 +1,19 @@
+black
+dlomix
+graphviz==0.20.1
+jax==0.4.10
+kaleido==0.2.1
+keras-nlp==0.5.2
+notebook @ file:///croot/notebook_1681756172480/work
+peptdeep==1.0.2
+pip==23.0.1
+pipdeptree==2.13.1
+plotly==5.16.1
+pre-commit==3.3.2
+pydot==1.4.2
+pydotplus==2.0.2
+ruff @ file:///home/conda/feedstock_root/build_artifacts/ruff_1684974875090/work
+tensorflow-addons==0.21.0
+tensorflow-model-optimization==0.7.5
+wandb==0.15.3
+xformers==0.0.20
