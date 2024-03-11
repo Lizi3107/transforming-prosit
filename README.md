@@ -1,5 +1,5 @@
 # transforming-prosit
-Transforming Prosit: Investigation of Transformer-Based Approach to Predict Tandem Spectrum Intensities
+### Transforming Prosit: Investigation of Transformer-Based Approach to Predict Tandem Spectrum Intensities ###
 
 ## Data
 - To train a variable input length model, use **get_tfdatasets** from *prosit_t.data.parquet_to_tfdataset*
