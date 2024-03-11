@@ -10,8 +10,9 @@ Transforming Prosit: Investigation of Transformer-Based Approach to Predict Tand
 The project introduces two types of models
 - The model that takes peptide sequences with the fixed length (>=7 & <= 30)
   - The implementation for the optimal model can be found under **prosit_transformer_v2** in *prosit_t.models*
-    
-    ![model](https://github.com/Lizi3107/transforming-prosit/assets/47035093/633ca915-da2b-409c-b442-693a0c8d9af9)
+
+  <img src="https://github.com/Lizi3107/transforming-prosit/assets/47035093/633ca915-da2b-409c-b442-693a0c8d9af9" alt="model" width="50"/>
+  
 - The model that does not limit the length of the input sequence lengths
   - The implementation for the optimal model can be found under **PrositTransformerDynamicLenDropLast** in *prosit_t.models.variable_seq_length_models*
 
