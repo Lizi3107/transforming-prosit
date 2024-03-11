@@ -11,13 +11,12 @@ The project introduces two types of models
 - The model that takes peptide sequences with the fixed length (>=7 & <= 30)
   - The implementation for the optimal model can be found under **prosit_transformer_v2** in *prosit_t.models*
 
-  <img src="https://github.com/Lizi3107/transforming-prosit/assets/47035093/633ca915-da2b-409c-b442-693a0c8d9af9" alt="model" width="500"/>
+  <img src="https://github.com/Lizi3107/transforming-prosit/assets/47035093/22c0c71b-6ab6-4e2b-983a-9542a158a533" alt="model" width="500"/>
   
 - The model that does not limit the length of the input sequence lengths
   - The implementation for the optimal model can be found under **PrositTransformerDynamicLenDropLast** in *prosit_t.models.variable_seq_length_models*
 
-    ![dynamic_model](https://github.com/Lizi3107/transforming-prosit/assets/47035093/43ca81c8-fb04-41dc-94be-25d346ccdeef)
-
+  <img src="https://github.com/Lizi3107/transforming-prosit/assets/47035093/93d256a0-6179-4874-92ee-9ae7a5eeb56a" alt="model" width="500"/>
 
 ## Train
 - Run prosit_t.wandb_agent.train for every transformer-based model training
